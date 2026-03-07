@@ -1,0 +1,163 @@
+{
+  "app": {
+    "name": "StoreStock",
+    "title": "Gestión de Inventario",
+    "loading": "Cargando..."
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "logout": "Cerrar Sesión",
+    "welcome": "Bienvenido",
+    "welcomeBack": "Ingresa para continuar",
+    "loginError": "Error al iniciar sesión",
+    "registerError": "Error al registrarse",
+    "noAccount": "¿No tienes cuenta?",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "stores": "Tiendas",
+    "branches": "Sucursales",
+    "users": "Usuarios",
+    "categories": "Categorías",
+    "permissions": "Permisos",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "totalStores": "Total de Tiendas",
+    "totalBranches": "Total de Sucursales",
+    "totalUsers": "Total de Usuarios",
+    "recentActivity": "Actividad Reciente"
+  },
+  "stores": {
+    "title": "Tiendas",
+    "create": "Nueva Tienda",
+    "edit": "Editar Tienda",
+    "delete": "Eliminar Tienda",
+    "name": "Nombre",
+    "address": "Dirección",
+    "phone": "Teléfono",
+    "confirmDelete": "¿Está seguro de eliminar esta tienda?",
+    "noStores": "No hay tiendas",
+    "created": "Tienda creada",
+    "updated": "Tienda actualizada",
+    "deleted": "Tienda eliminada",
+    "select": "Seleccionar Tienda",
+    "selectDescription": "Por favor selecciona una tienda para continuar"
+  },
+  "home": {
+    "title": "Mis Sucursales",
+    "noBranches": "No tienes acceso a ninguna sucursal"
+  },
+  "categories": {
+    "title": "Categorías",
+    "noCategories": "No hay categorías"
+  },
+  "branches": {
+    "title": "Sucursales",
+    "create": "Nueva Sucursal",
+    "edit": "Editar Sucursal",
+    "delete": "Eliminar Sucursal",
+    "name": "Nombre",
+    "address": "Dirección",
+    "phone": "Teléfono",
+    "store": "Tienda",
+    "manager": "Gerente",
+    "all": "Todas las sucursales",
+    "confirmDelete": "¿Está seguro de eliminar esta sucursal?",
+    "noBranches": "No hay sucursales"
+  },
+  "users": {
+    "title": "Usuarios",
+    "create": "Nuevo Usuario",
+    "edit": "Editar Usuario",
+    "delete": "Eliminar Usuario",
+    "name": "Nombre",
+    "email": "Correo",
+    "role": "Rol",
+    "store": "Tienda",
+    "branch": "Sucursal",
+    "confirmDelete": "¿Está seguro de eliminar este usuario?",
+    "noUsers": "No hay usuarios"
+  },
+  "items": {
+    "title": "Artículos",
+    "create": "Nuevo Artículo",
+    "edit": "Editar Artículo",
+    "delete": "Eliminar Artículo",
+    "name": "Nombre",
+    "description": "Descripción",
+    "sku": "SKU",
+    "price": "Precio",
+    "cost": "Costo",
+    "stock": "Stock",
+    "category": "Categoría",
+    "measure": "Unidad de Medida",
+    "currentQuantity": "Cantidad Actual",
+    "minimumQuantity": "Cantidad Mínima",
+    "selectCategory": "Seleccionar Categoría",
+    "confirmDelete": "¿Está seguro de eliminar este artículo?",
+    "noItems": "No hay artículos",
+    "allStatus": "Todos",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "categories": {
+    "title": "Categorías",
+    "create": "Nueva Categoría",
+    "edit": "Editar Categoría",
+    "delete": "Eliminar Categoría",
+    "name": "Nombre",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "confirmDelete": "¿Está seguro de eliminar esta categoría?",
+    "noCategories": "No hay categorías",
+    "viewItems": "Ver artículos"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "actions": "Acciones",
+    "search": "Buscar",
+    "noData": "Sin datos",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "continue": "Continuar",
+    "filter": "Filtrar",
+    "clearFilters": "Limpiar filtros"
+  },
+  "permissions": {
+    "title": "Permisos",
+    "roles": "Roles",
+    "globalPermissions": "Permisos Globales",
+    "create": "Nuevo",
+    "edit": "Editar",
+    "name": "Nombre",
+    "permissions": "Permisos",
+    "assigned": "asignados",
+    "none": "Sin permisos",
+    "confirmDeleteRole": "¿Estás seguro de que quieres eliminar este rol?",
+    "confirmDeletePermission": "¿Estás seguro de que quieres eliminar este permiso?",
+    "noRoles": "No hay roles",
+    "noPermissions": "No hay permisos globales"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "toggle": "Cambiar tema"
+  },
+  "language": {
+    "es": "Español",
+    "en": "English",
+    "toggle": "Cambiar idioma"
+  }
+}

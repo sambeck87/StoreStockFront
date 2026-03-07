@@ -1,0 +1,189 @@
+{
+  "app": {
+    "name": "StoreStock",
+    "title": "Inventory Management",
+    "loading": "Loading..."
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "logout": "Logout",
+    "welcome": "Welcome",
+    "welcomeBack": "Sign in to continue",
+    "loginError": "Login failed",
+    "registerError": "Registration failed",
+    "noAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "stores": "Stores",
+    "branches": "Branches",
+    "users": "Users",
+    "categories": "Categories",
+    "permissions": "Permissions",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalStores": "Total Stores",
+    "totalBranches": "Total Branches",
+    "totalUsers": "Total Users",
+    "recentActivity": "Recent Activity"
+  },
+  "stores": {
+    "title": "Stores",
+    "create": "New Store",
+    "edit": "Edit Store",
+    "delete": "Delete Store",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone",
+    "confirmDelete": "Are you sure you want to delete this store?",
+    "noStores": "No stores",
+    "created": "Store created",
+    "updated": "Store updated",
+    "deleted": "Store deleted",
+    "select": "Select Store",
+    "selectDescription": "Please select a store to continue"
+  },
+  "home": {
+    "title": "My Branches",
+    "noBranches": "You don't have access to any branch"
+  },
+  "categories": {
+    "title": "Categories",
+    "noCategories": "No categories"
+  },
+  "branches": {
+    "title": "Branches",
+    "create": "New Branch",
+    "edit": "Edit Branch",
+    "delete": "Delete Branch",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone",
+    "store": "Store",
+    "manager": "Manager",
+    "confirmDelete": "Are you sure you want to delete this branch?",
+    "noBranches": "No branches"
+  },
+  "users": {
+    "title": "Users",
+    "create": "New User",
+    "edit": "Edit User",
+    "delete": "Delete User",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "store": "Store",
+    "branch": "Branch",
+    "confirmDelete": "Are you sure you want to delete this user?",
+    "noUsers": "No users"
+  },
+  "items": {
+    "title": "Items",
+    "create": "New Item",
+    "edit": "Edit Item",
+    "delete": "Delete Item",
+    "name": "Name",
+    "description": "Description",
+    "sku": "SKU",
+    "price": "Price",
+    "cost": "Cost",
+    "stock": "Stock",
+    "category": "Category",
+    "measure": "Unit of Measure",
+    "currentQuantity": "Current Quantity",
+    "minimumQuantity": "Minimum Quantity",
+    "selectCategory": "Select Category",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "noItems": "No items",
+    "allStatus": "All",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "categories": {
+    "title": "Categories",
+    "create": "New Category",
+    "edit": "Edit Category",
+    "delete": "Delete Category",
+    "name": "Name",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "confirmDelete": "Are you sure you want to delete this category?",
+    "noCategories": "No categories",
+    "viewItems": "View items"
+  },
+  "branches": {
+    "title": "Branches",
+    "create": "New Branch",
+    "edit": "Edit Branch",
+    "delete": "Delete Branch",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone",
+    "store": "Store",
+    "manager": "Manager",
+    "all": "All branches",
+    "confirmDelete": "Are you sure you want to delete this branch?",
+    "noBranches": "No branches"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions",
+    "search": "Search",
+    "noData": "No data",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "continue": "Continue",
+    "filter": "Filter",
+    "clearFilters": "Clear filters"
+  },
+  "permissions": {
+    "title": "Permissions",
+    "roles": "Roles",
+    "globalPermissions": "Global Permissions",
+    "create": "New",
+    "edit": "Edit",
+    "name": "Name",
+    "permissions": "Permissions",
+    "assigned": "assigned",
+    "none": "No permissions",
+    "confirmDeleteRole": "Are you sure you want to delete this role?",
+    "confirmDeletePermission": "Are you sure you want to delete this permission?",
+    "noRoles": "No roles",
+    "noPermissions": "No global permissions"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions",
+    "search": "Search",
+    "noData": "No data",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "toggle": "Toggle theme"
+  },
+  "language": {
+    "es": "Español",
+    "en": "English",
+    "toggle": "Change language"
+  }
+}
