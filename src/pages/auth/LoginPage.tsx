@@ -33,7 +33,7 @@ export function LoginPage() {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.store_id) {
-          navigate('/home');
+          navigate('/dashboard');
         } else {
           navigate('/store-select');
         }
@@ -124,13 +124,23 @@ export function LoginPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Input
-                  label={t('auth.password')}
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="flex items-center justify-between">
+                  <Input
+                    label={t('auth.password')}
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="text-right mt-1">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
               </motion.div>
 
               <motion.div

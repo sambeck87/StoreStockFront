@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
 import { Card, Button, Modal, Input, Table } from '../../components/common';
-import type { Item, Branch, Category } from '../../types';
-import { ArrowLeft, Package, Filter, Trash2, Power, Save, Pencil, Plus, Minus } from 'lucide-react';
+import type { Item, Branch } from '../../types';
+import { ArrowLeft, Package, Filter, Trash2, Power, Save, Plus, Minus } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const NumberControl = ({ label, value, onChange, prefix, decimals = false }: any) => {
   const handleDecrement = () => {
@@ -66,12 +67,12 @@ const NumberControl = ({ label, value, onChange, prefix, decimals = false }: any
   );
 };
 
-export function CategoryDetailPage() {
+export function CategoryItemsPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
-  const [category, setCategory] = useState<Category | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -94,45 +95,31 @@ export function CategoryDetailPage() {
   const [branchesLoaded, setBranchesLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
-      try {
-        const [categoryData, branchesData] = await Promise.all([
-          api.getCategory(Number(id)),
-          api.getBranches(),
-        ]);
-        setCategory(categoryData);
-        setBranches(branchesData);
-        if (branchesData.length > 0) {
-          setFilters(prev => ({ ...prev, branch_id: String(branchesData[0].id) }));
-        }
-        setBranchesLoaded(true);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, [id]);
+    if (user?.branches && user.branches.length > 0) {
+      setBranches(user.branches);
+      setFilters(prev => ({ ...prev, branch_id: String(user.branches![0].id) }));
+    }
+    setBranchesLoaded(true);
+  }, [user]);
 
   useEffect(() => {
     const fetchItems = async () => {
-      if (!id || !branchesLoaded) return;
+      if (!id || !branchesLoaded || !filters.branch_id) return;
       setIsLoading(true);
       try {
-        const params: { branch_id?: number; active?: boolean } = {};
-
-        if (filters.branch_id) {
-          params.branch_id = Number(filters.branch_id);
-        }
-
+        const branchId = Number(filters.branch_id);
+        const categoryId = Number(id);
+        const params: { category_id: number; active?: boolean } = { category_id: categoryId };
+        
         if (filters.active !== '') {
           params.active = filters.active === 'true';
         }
-
-        const data = await api.getCategoryItems(Number(id), params);
+        
+        const data = await api.getBranchItems(branchId, params);
         setItems(data);
       } catch (error) {
         console.error('Error fetching items:', error);
+        setItems([]);
       } finally {
         setIsLoading(false);
       }
@@ -145,10 +132,10 @@ export function CategoryDetailPage() {
   };
 
   const clearFilters = () => {
-    setFilters({ branch_id: '', active: 'true' });
+    setFilters(prev => ({ ...prev, active: 'true' }));
   };
 
-  const hasActiveFilters = filters.branch_id !== '';
+  const hasActiveFilters = filters.active !== 'true';
 
   const handleOpenModal = (item?: Item) => {
     if (item) {
@@ -252,11 +239,13 @@ export function CategoryDetailPage() {
 
         await api.createItem({ ...newItemData, category_id: Number(id) });
         
-        const params: { branch_id?: number; active?: boolean } = {};
-        if (filters.branch_id) params.branch_id = Number(filters.branch_id);
-        if (filters.active !== '') params.active = filters.active === 'true';
-        const data = await api.getCategoryItems(Number(id), params);
-        setItems(data);
+        if (filters.branch_id) {
+          const branchId = Number(filters.branch_id);
+          const allItems = await api.getBranchItems(branchId);
+          const categoryId = Number(id);
+          const filteredItems = allItems.filter(item => item.category_id === categoryId);
+          setItems(filteredItems);
+        }
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -274,11 +263,13 @@ export function CategoryDetailPage() {
           category_id: Number(id)
         });
 
-        const params: { branch_id?: number; active?: boolean } = {};
-        if (filters.branch_id) params.branch_id = Number(filters.branch_id);
-        if (filters.active !== '') params.active = filters.active === 'true';
-        const data = await api.getCategoryItems(Number(id), params);
-        setItems(data);
+        if (filters.branch_id) {
+          const branchId = Number(filters.branch_id);
+          const allItems = await api.getBranchItems(branchId);
+          const categoryId = Number(id);
+          const filteredItems = allItems.filter(item => item.category_id === categoryId);
+          setItems(filteredItems);
+        }
       } catch (err) {
         const message = api.getErrorMessage(err);
         alert(message);
@@ -473,7 +464,7 @@ export function CategoryDetailPage() {
   return (
     <div>
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate('/categories')}
         className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -482,7 +473,7 @@ export function CategoryDetailPage() {
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {category?.name || t('items.title')}
+          {t('items.title')}
         </h1>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -534,85 +525,19 @@ export function CategoryDetailPage() {
           {t('items.noItems')}
         </div>
       ) : (
-        <>
-          <div className="hidden lg:block">
-            <Card className="p-0 overflow-hidden">
-              <Table 
-                data={items} 
-                columns={columns} 
-                keyExtractor={(i) => i.id} 
-                emptyMessage={t('items.noItems')}
-                rowClassName={(item) => 
-                  (item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity)
-                    ? 'bg-red-50/60 dark:bg-red-900/20'
-                    : ''
-                }
-              />
-            </Card>
-          </div>
-
-          <div className="lg:hidden space-y-4">
-            {items.map((item) => {
-              const isLowStock = item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity;
-              return (
-                <Card key={item.id} className={`${isLowStock ? 'border-red-300 dark:border-red-700 bg-red-50/60 dark:bg-red-900/20' : ''}`}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
-                      {item.measure && <p className="text-sm text-gray-500 dark:text-gray-400">{item.measure}</p>}
-                    </div>
-                    <button
-                      onClick={() => handleToggleStatus(item)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                        item.active 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-                      }`}
-                    >
-                      <Power className="w-3 h-3" />
-                      {item.active ? 'Activo' : 'Inactivo'}
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">Disponibles:</span>
-                      <span className={`ml-2 font-medium ${isLowStock ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                        {item.current_quantity ?? '-'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">Mínimo:</span>
-                      <span className="ml-2 text-gray-700 dark:text-gray-300">{item.minimum_quantity ?? '-'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">Costo:</span>
-                      <span className="ml-2 text-gray-700 dark:text-gray-300">
-                        {item.cost !== undefined && item.cost !== null ? `$${Number(item.cost).toFixed(2)}` : '-'}
-                      </span>
-                    </div>
-                    {item.price && (
-                      <div>
-                        <span className="text-gray-500 dark:text-gray-400">Precio:</span>
-                        <span className="ml-2 text-gray-700 dark:text-gray-300">${Number(item.price).toFixed(2)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <Button variant="secondary" size="sm" onClick={() => handleOpenModal(item)} className="flex-1">
-                      <Pencil className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </>
+        <Card className="p-0 overflow-hidden">
+          <Table 
+            data={items} 
+            columns={columns} 
+            keyExtractor={(i) => i.id} 
+            emptyMessage={t('items.noItems')}
+            rowClassName={(item) => 
+              (item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity)
+                ? 'bg-red-50/60 dark:bg-red-900/20'
+                : ''
+            }
+          />
+        </Card>
       )}
 
       <Modal

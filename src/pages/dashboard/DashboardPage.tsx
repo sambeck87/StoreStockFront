@@ -2,44 +2,38 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../../components/common';
 import { api } from '../../api';
-import { Store, Building2, Users } from 'lucide-react';
+import { Building2, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Stats {
-  stores: number;
   branches: number;
   users: number;
 }
 
-const statIcons = {
-  stores: Store,
-  branches: Building2,
-  users: Users,
-};
-
-const statColors = {
-  stores: { bg: 'from-blue-500/10 to-blue-600/20', icon: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
-  branches: { bg: 'from-green-500/10 to-green-600/20', icon: 'text-green-600 dark:text-green-400', border: 'border-green-200 dark:border-green-800' },
-  users: { bg: 'from-purple-500/10 to-purple-600/20', icon: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' },
-};
-
 export function DashboardPage() {
   const { t } = useTranslation();
-  const [stats, setStats] = useState<Stats>({ stores: 0, branches: 0, users: 0 });
+  const { permissionResources } = useAuth();
+  const [stats, setStats] = useState<Stats>({ branches: 0, users: 0 });
   const [isLoading, setIsLoading] = useState(true);
+
+  console.log('Dashboard - permissionResources:', permissionResources);
+
+  const canViewUsers = (permissionResources['user']?.length ?? 0) > 0;
+  const canViewBranches = (permissionResources['branch']?.length ?? 0) > 0;
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [stores, branches, users] = await Promise.all([
-          api.getStores(),
-          api.getBranches(),
-          api.getUsers(),
-        ]);
+        const promises = [];
+        if (canViewBranches) promises.push(api.getBranches());
+        if (canViewUsers) promises.push(api.getUsers());
+        
+        const results = await Promise.all(promises);
+        let idx = 0;
         setStats({
-          stores: stores.length,
-          branches: branches.length,
-          users: users.length,
+          branches: canViewBranches ? results[idx++].length : 0,
+          users: canViewUsers ? results[idx++].length : 0,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -48,13 +42,22 @@ export function DashboardPage() {
       }
     };
     fetchStats();
-  }, []);
+  }, [canViewUsers, canViewBranches]);
 
   const statCards = [
-    { label: t('dashboard.totalStores'), value: stats.stores, key: 'stores' as const },
-    { label: t('dashboard.totalBranches'), value: stats.branches, key: 'branches' as const },
-    { label: t('dashboard.totalUsers'), value: stats.users, key: 'users' as const },
-  ];
+    { label: t('dashboard.totalBranches'), value: stats.branches, key: 'branches' as const, show: canViewBranches },
+    { label: t('dashboard.totalUsers'), value: stats.users, key: 'users' as const, show: canViewUsers },
+  ].filter(s => s.show);
+
+  const statIcons = {
+    branches: Building2,
+    users: Users,
+  };
+
+  const statColors = {
+    branches: { bg: 'from-green-500/10 to-green-600/20', icon: 'text-green-600 dark:text-green-400', border: 'border-green-200 dark:border-green-800' },
+    users: { bg: 'from-purple-500/10 to-purple-600/20', icon: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' },
+  };
 
   if (isLoading) {
     return (

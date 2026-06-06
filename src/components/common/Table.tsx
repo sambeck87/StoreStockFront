@@ -13,9 +13,10 @@ interface TableProps<T> {
   keyExtractor: (item: T) => string | number;
   emptyMessage?: string;
   rowClassName?: (item: T) => string;
+  onRowClick?: (item: T) => void;
 }
 
-export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data', rowClassName }: TableProps<T>) {
+export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data', rowClassName, onRowClick }: TableProps<T>) {
   if (data.length === 0) {
     return (
       <div className="text-center py-12">
@@ -51,7 +52,8 @@ export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data'
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.05 }}
-              className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(item) : ''}`}
+              onClick={() => onRowClick && onRowClick(item)}
+              className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(item) : ''} ${onRowClick ? 'cursor-pointer' : ''}`}
             >
               {columns.map((col) => (
                 <td

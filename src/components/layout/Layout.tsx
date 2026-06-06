@@ -7,21 +7,38 @@ import { Sun, Moon, Globe, Store, Building2, Users, Package, LayoutDashboard, Lo
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
-  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
-  { path: '/stores', icon: Store, labelKey: 'nav.stores' },
-  { path: '/branches', icon: Building2, labelKey: 'nav.branches' },
-  { path: '/users', icon: Users, labelKey: 'nav.users' },
-  { path: '/categories', icon: Package, labelKey: 'nav.categories' },
-  { path: '/permissions', icon: Shield, labelKey: 'nav.permissions' },
-];
-
 export function Layout() {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, permissionResources } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  console.log('Layout - permissionResources:', permissionResources);
+
+  const canViewStores = user && (!!user.store_id || (permissionResources['store']?.length ?? 0) > 0);
+  const canViewBranches = user && (permissionResources['branch']?.length ?? 0) > 0;
+  const canViewUsers = user && (permissionResources['user']?.length ?? 0) > 0;
+  const canViewCategories = user && (
+    (permissionResources['category']?.length ?? 0) > 0 ||
+    (permissionResources['item']?.length ?? 0) > 0
+  );
+  const canViewPermissions = user && (
+    (permissionResources['permission']?.length ?? 0) > 0 || 
+    (permissionResources['role']?.length ?? 0) > 0 || 
+    (permissionResources['global_permission']?.length ?? 0) > 0
+  );
+
+  console.log('Layout - canView:', { canViewStores, canViewBranches, canViewUsers, canViewCategories, canViewPermissions });
+
+  const navItems = [
+    { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard', show: true },
+    { path: '/stores', icon: Store, labelKey: 'nav.stores', show: canViewStores },
+    { path: '/branches', icon: Building2, labelKey: 'nav.branches', show: canViewBranches },
+    { path: '/users', icon: Users, labelKey: 'nav.users', show: canViewUsers },
+    { path: '/categories', icon: Package, labelKey: 'nav.categories', show: canViewCategories },
+    { path: '/permissions', icon: Shield, labelKey: 'nav.permissions', show: canViewPermissions },
+  ].filter(item => item.show);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'es' ? 'en' : 'es';

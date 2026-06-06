@@ -50,8 +50,20 @@ class ApiService {
   }
 
   async register(userData: RegisterData): Promise<AuthResponse> {
-    const { data } = await this.api.post<AuthResponse>('/registration', userData);
+    const { data } = await this.api.post<AuthResponse>('/registration', { user: userData });
     return data;
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    await this.api.post('/passwords/reset', { email });
+  }
+
+  async updatePassword(token: string, password: string, passwordConfirmation: string): Promise<void> {
+    await this.api.put('/passwords', {
+      token,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
   }
 
   async getUsers(): Promise<User[]> {
@@ -156,7 +168,7 @@ class ApiService {
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.active !== undefined) queryParams.append('active', String(params.active));
-    
+
     const url = queryParams.toString() ? `/items?${queryParams}` : '/items';
     const { data } = await this.api.get<{ items: Item[] }>(url);
     return data.items;
@@ -166,22 +178,29 @@ class ApiService {
     const queryParams = new URLSearchParams();
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.active !== undefined) queryParams.append('active', String(params.active));
-    
-    const url = queryParams.toString() 
-      ? `/categories/${categoryId}/items?${queryParams}` 
+
+    const url = queryParams.toString()
+      ? `/categories/${categoryId}/items?${queryParams}`
       : `/categories/${categoryId}/items`;
     const { data } = await this.api.get<{ items: Item[] }>(url);
     return data.items;
   }
 
-  async getBranchItems(branchId: number): Promise<Item[]> {
-    const { data } = await this.api.get<{ items: Item[] }>(`/branches/${branchId}/items`);
+  async getBranchItems(branchId: number, params?: { category_id?: number; active?: boolean }): Promise<Item[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.category_id) queryParams.append('category_id', String(params.category_id));
+    if (params?.active !== undefined) queryParams.append('active', String(params.active));
+
+    const url = queryParams.toString()
+      ? `/branches/${branchId}/items?${queryParams}`
+      : `/branches/${branchId}/items`;
+    const { data } = await this.api.get<{ items: Item[] }>(url);
     return data.items;
   }
 
   async createItem(itemData: Partial<Item> & { category_id?: number }): Promise<Item> {
-    const url = itemData.category_id 
-      ? `/categories/${itemData.category_id}/items` 
+    const url = itemData.category_id
+      ? `/categories/${itemData.category_id}/items`
       : '/items';
     const { data } = await this.api.post<{ item: Item }>(url, itemData);
     return data.item;
@@ -265,8 +284,16 @@ class ApiService {
     return response.user;
   }
 
+  async detachUserStore(userId: number): Promise<void> {
+    await this.api.delete(`/admin/users/${userId}/store`);
+  }
+
+  async revokeUserBranchAccess(userId: number, branchId: number): Promise<void> {
+    await this.api.delete(`/admin/users/${userId}/branches/${branchId}`);
+  }
+
   async getUserBranches(): Promise<Branch[]> {
-    const { data } = await this.api.get<{ branches: Branch[] }>('/branches/user');
+    const { data } = await this.api.get<{ branches: Branch[] }>('/branches');
     return data.branches;
   }
 
@@ -278,6 +305,10 @@ class ApiService {
   async setUserStore(storeId: number): Promise<User> {
     const { data } = await this.api.post<{ user: User }>('/users/set_store', { store_id: storeId });
     return data.user;
+  }
+
+  async confirmEmail(token: string): Promise<void> {
+    await this.api.patch(`/confirmations/${token}`);
   }
 }
 

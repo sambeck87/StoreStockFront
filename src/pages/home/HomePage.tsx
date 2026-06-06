@@ -3,16 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
 import { Card } from '../../components/common';
+import { useAuth } from '../../contexts/AuthContext';
 import type { Branch } from '../../types';
 import { Building2 } from 'lucide-react';
 
 export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { token, isLoading: authLoading } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    
     const fetchBranches = async () => {
       try {
         const data = await api.getUserBranches();
@@ -24,9 +28,9 @@ export function HomePage() {
       }
     };
     fetchBranches();
-  }, []);
+  }, [token, authLoading]);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />

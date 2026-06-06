@@ -2,19 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
-import { Button, Card } from '../../components/common';
+import { Button, Card, Input } from '../../components/common';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Store } from '../../types';
-import { Store as StoreIcon } from 'lucide-react';
+import { Store as StoreIcon, Plus, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function StoreSelectPage() {
   const { t } = useTranslation();
-  const { updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newStoreName, setNewStoreName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -31,16 +36,35 @@ export function StoreSelectPage() {
   }, []);
 
   const handleSelectStore = async () => {
-    if (!selectedStore) return;
+    if (!selectedStore || !user) return;
     setIsSaving(true);
+    setError('');
     try {
-      const updatedUser = await api.setUserStore(selectedStore);
+      const updatedUser = await api.updateUser(user.id, { store_id: selectedStore } as any);
       updateUser(updatedUser);
-      navigate('/home');
-    } catch (error) {
-      console.error('Error setting store:', error);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Error setting store:', err);
+      setError(t('stores.selectError'));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateStore = async () => {
+    if (!newStoreName.trim() || !user) return;
+    setIsCreating(true);
+    setError('');
+    try {
+      const newStore = await api.createStore({ name: newStoreName.trim() });
+      const updatedUser = await api.updateUser(user.id, { store_id: newStore.id } as any);
+      updateUser(updatedUser);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Error creating store:', err);
+      setError(t('stores.createError'));
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -66,7 +90,21 @@ export function StoreSelectPage() {
             {t('stores.selectDescription')}
           </p>
         </div>
-        <div className="space-y-3">
+
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="space-y-3 max-h-64 overflow-y-auto">
           {stores.map((store) => (
             <button
               key={store.id}
@@ -84,14 +122,91 @@ export function StoreSelectPage() {
             </button>
           ))}
         </div>
+
         <Button
           onClick={handleSelectStore}
           disabled={!selectedStore || isSaving}
           className="w-full mt-6"
         >
-          {isSaving ? t('common.loading') : t('common.continue')}
+          {isSaving ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            t('common.continue')
+          )}
         </Button>
+
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            variant="secondary"
+            onClick={() => setShowCreateModal(true)}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {t('stores.createNew')}
+          </Button>
+        </div>
       </Card>
+
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCreateModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {t('stores.createNew')}
+                </h2>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <Input
+                label={t('stores.name')}
+                value={newStoreName}
+                onChange={(e) => setNewStoreName(e.target.value)}
+                placeholder={t('stores.namePlaceholder')}
+                required
+              />
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1"
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  onClick={handleCreateStore}
+                  disabled={!newStoreName.trim() || isCreating}
+                  className="flex-1"
+                >
+                  {isCreating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    t('stores.create')
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

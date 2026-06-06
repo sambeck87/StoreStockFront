@@ -7,6 +7,7 @@ export interface User {
   branches?: Branch[];
   store_id?: number;
   global_permission_id?: number;
+  global_permission?: GlobalPermission;
 }
 
 export interface Role {
@@ -21,6 +22,32 @@ export interface GlobalPermission {
   name: string;
   description?: string;
   permissions?: Record<string, string[]>;
+}
+
+export interface Branch {
+  id: number;
+  name: string;
+  phone?: string;
+  manager_name?: string;
+  manager_email?: string;
+  main_branch?: boolean;
+  address?: string;
+  store_id?: number;
+  is_main?: boolean;
+  role?: Role;
+}
+
+export interface Branch {
+  id: number;
+  name: string;
+  phone?: string;
+  manager_name?: string;
+  manager_email?: string;
+  main_branch?: boolean;
+  address?: string;
+  store_id?: number;
+  is_main?: boolean;
+  role?: Role;
 }
 
 export interface Store {
@@ -87,5 +114,6 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  name: string;
+  password_confirmation: string;
+  full_name: string;
 }

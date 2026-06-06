@@ -1,28 +1,56 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input, Card } from '../../components/common';
-import { Store, Loader2 } from 'lucide-react';
+import { Store, Loader2, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
+  return (
+    <div className={`flex items-center gap-2 text-sm ${met ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>
+      {met ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+      <span>{text}</span>
+    </div>
+  );
+}
 
 export function RegisterPage() {
   const { t } = useTranslation();
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const hasMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const passwordsMatch = password === passwordConfirmation && password.length > 0;
+  const allRequirementsMet = hasMinLength && hasUppercase && hasLowercase && hasNumber && passwordsMatch;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+    
+    if (password !== passwordConfirmation) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      await register({ name, email, password });
-      navigate('/store-select');
+      await register({ full_name: name, email, password, password_confirmation: password });
+      setSuccess(t('auth.registerSuccess'));
+      setName('');
+      setEmail('');
+      setPassword('');
+      setPasswordConfirmation('');
     } catch {
       setError(t('auth.registerError'));
     } finally {
@@ -86,6 +114,16 @@ export function RegisterPage() {
                     {error}
                   </motion.div>
                 )}
+                {success && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800"
+                  >
+                    {success}
+                  </motion.div>
+                )}
               </AnimatePresence>
 
               <motion.div
@@ -128,19 +166,54 @@ export function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                {password && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-2 space-y-1"
+                  >
+                    <PasswordRequirement met={hasMinLength} text="Mínimo 8 caracteres" />
+                    <PasswordRequirement met={hasUppercase} text="Una letra mayúscula" />
+                    <PasswordRequirement met={hasLowercase} text="Una letra minúscula" />
+                    <PasswordRequirement met={hasNumber} text="Un número" />
+                  </motion.div>
+                )}
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.45 }}
               >
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                  disabled={isLoading}
+                <Input
+                  label="Confirmar Contraseña"
+                  type="password"
+                  value={passwordConfirmation}
+                  onChange={(e) => setPasswordConfirmation(e.target.value)}
+                  required
+                />
+                {passwordConfirmation && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-2"
+                  >
+                    <PasswordRequirement met={passwordsMatch} text="Las contraseñas coinciden" />
+                  </motion.div>
+                )}
+              </motion.div>
+
+<motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
                 >
-                  {isLoading ? (
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
+                    disabled={isLoading || !allRequirementsMet}
+                  >
+                    {isLoading ? (
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}

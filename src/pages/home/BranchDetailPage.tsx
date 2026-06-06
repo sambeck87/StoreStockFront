@@ -39,7 +39,7 @@ export function BranchDetailPage() {
   return (
     <div>
       <button
-        onClick={() => navigate('/home')}
+        onClick={() => navigate('/dashboard')}
         className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />

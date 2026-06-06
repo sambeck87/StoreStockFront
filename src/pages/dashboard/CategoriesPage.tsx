@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Card, Table, Modal, Input } from '../../components/common';
 import { api } from '../../api';
 import type { Category } from '../../types';
-import { Plus, Pencil, Trash2, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
 
 export function CategoriesPage() {
@@ -87,7 +87,7 @@ export function CategoriesPage() {
   };
 
   const handleViewItems = (categoryId: number) => {
-    navigate(`/categories/${categoryId}`);
+    navigate(`/categories/${categoryId}/items`);
   };
 
   const columns = [
@@ -105,10 +105,7 @@ export function CategoriesPage() {
       key: 'actions',
       header: t('common.actions'),
       render: (category: Category) => (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleViewItems(category.id)} title={t('categories.viewItems')}>
-            <Package className="w-4 h-4 text-blue-500" />
-          </Button>
+        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="sm" onClick={() => handleOpenModal(category)}>
             <Pencil className="w-4 h-4" />
           </Button>
@@ -142,7 +139,7 @@ export function CategoriesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : (
-          <Table data={categories} columns={columns} keyExtractor={(c) => c.id} emptyMessage={t('categories.noCategories')} />
+          <Table data={categories} columns={columns} keyExtractor={(c) => c.id} emptyMessage={t('categories.noCategories')} onRowClick={(c) => handleViewItems(c.id)} />
         )}
       </Card>
 
