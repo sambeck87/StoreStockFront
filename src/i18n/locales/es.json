@@ -22,6 +22,7 @@
   "nav": {
     "dashboard": "Panel",
     "stores": "Tiendas",
+    "store": "Tienda",
     "branches": "Sucursales",
     "users": "Usuarios",
     "categories": "Categorías",
@@ -54,6 +55,14 @@
     "createError": "Error al crear la tienda",
     "selectError": "Error al seleccionar la tienda",
     "namePlaceholder": "Ej: Mi Tienda"
+  },
+  "store": {
+    "title": "Mi Tienda",
+    "name": "Nombre",
+    "address": "Direcci\u00f3n",
+    "phone": "Tel\u00e9fono",
+    "manager": "Gerente",
+    "noStoreAssigned": "No tienes una tienda asignada"
   },
   "home": {
     "title": "Mis Sucursales",
@@ -135,6 +144,7 @@
     "error": "Error",
     "success": "Éxito",
     "confirm": "Confirmar",
+    "edit": "Editar",
     "back": "Volver",
     "continue": "Continuar",
     "filter": "Filtrar",

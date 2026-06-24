@@ -2,37 +2,34 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Table, Modal, Input } from '../../components/common';
 import { api } from '../../api';
-import type { Branch, Store } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import type { Branch } from '../../types';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
 
 export function BranchesPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [formData, setFormData] = useState({ name: '', phone: '', storeId: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '' });
 
-  const fetchData = async () => {
+  const fetchBranches = async () => {
     try {
-      const [branchesData, storesData] = await Promise.all([
-        api.getBranches(),
-        api.getStores(),
-      ]);
-      setBranches(branchesData);
-      setStores(storesData);
+      const data = await api.getBranches();
+      setBranches(data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching branches:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchBranches();
   }, []);
 
   const handleOpenModal = (branch?: Branch) => {
@@ -42,11 +39,10 @@ export function BranchesPage() {
       setFormData({
         name: branch.name,
         phone: branch.phone || '',
-        storeId: String(branch.store_id),
       });
     } else {
       setEditingBranch(null);
-      setFormData({ name: '', phone: '', storeId: stores[0]?.id?.toString() || '' });
+      setFormData({ name: '', phone: '' });
     }
     setIsModalOpen(true);
   };
@@ -54,7 +50,6 @@ export function BranchesPage() {
   const handleSubmit = async () => {
     const validationErrors = validateForm(formData, [
       { field: 'name', rules: { required: validationMessages.nameRequired } },
-      { field: 'storeId', rules: { required: 'Selecciona una tienda' } },
     ]);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -63,18 +58,24 @@ export function BranchesPage() {
     }
 
     try {
-      const data = { 
-        name: formData.name,
-        phone: formData.phone || undefined,
-        storeId: Number(formData.storeId) 
-      };
       if (editingBranch) {
-        await api.updateBranch(editingBranch.id, data);
+        await api.updateBranch(editingBranch.id, {
+          name: formData.name,
+          phone: formData.phone || undefined,
+        });
       } else {
-        await api.createBranch(data);
+        if (!user?.store_id) {
+          alert('No tienes una tienda asignada');
+          return;
+        }
+        await api.createBranch({
+          name: formData.name,
+          phone: formData.phone || undefined,
+          store_id: user.store_id,
+        });
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchBranches();
     } catch (error) {
       const message = api.getErrorMessage(error);
       alert(message);
@@ -86,7 +87,7 @@ export function BranchesPage() {
     if (window.confirm(t('branches.confirmDelete'))) {
       try {
         await api.deleteBranch(id);
-        fetchData();
+        fetchBranches();
       } catch (error) {
         const message = api.getErrorMessage(error);
         alert(message);
@@ -95,11 +96,8 @@ export function BranchesPage() {
     }
   };
 
-  const getStoreName = (storeId?: number) => storeId ? stores.find(s => s.id === storeId)?.name || '-' : '-';
-
   const columns = [
     { key: 'name', header: t('branches.name') },
-    { key: 'store', header: t('branches.store'), render: (b: Branch) => getStoreName(b.store_id) },
     { key: 'phone', header: t('branches.phone') },
     {
       key: 'actions',
@@ -157,20 +155,6 @@ export function BranchesPage() {
             error={errors.name}
             required
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('branches.store')} *
-            </label>
-            <select
-              className={`w-full px-3 py-2 border rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.storeId ? 'border-red-500' : ''}`}
-              value={formData.storeId}
-              onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
-            >
-              <option value="">Selecciona una tienda</option>
-              {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            {errors.storeId && <p className="mt-1 text-sm text-red-500">{errors.storeId}</p>}
-          </div>
           <Input
             label={t('branches.phone')}
             value={formData.phone}

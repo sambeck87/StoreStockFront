@@ -171,12 +171,32 @@ export function PermissionsPage() {
     setIsModalOpen(true);
   };
 
+  const READ_ACTIONS = ['index', 'show'];
+  const WRITE_ACTIONS = ['create', 'update', 'delete'];
+
   const handlePermissionChange = (resource: string, action: string, checked: boolean) => {
     setFormData(prev => {
       const currentPermissions = prev.permissions[resource] || [];
-      const newPermissions = checked
-        ? [...currentPermissions, action]
-        : currentPermissions.filter(p => p !== action);
+      let newPermissions: string[];
+
+      if (checked) {
+        newPermissions = currentPermissions.includes(action)
+          ? currentPermissions
+          : [...currentPermissions, action];
+        if (WRITE_ACTIONS.includes(action)) {
+          READ_ACTIONS.forEach(readAction => {
+            if (!newPermissions.includes(readAction)) {
+              newPermissions.push(readAction);
+            }
+          });
+        }
+      } else {
+        newPermissions = currentPermissions.filter(p => p !== action);
+        if (READ_ACTIONS.includes(action)) {
+          newPermissions = newPermissions.filter(p => !WRITE_ACTIONS.includes(p));
+        }
+      }
+
       return {
         ...prev,
         permissions: {

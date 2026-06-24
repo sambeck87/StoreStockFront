@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../../components/common';
 import { api } from '../../api';
@@ -84,6 +85,7 @@ export function DashboardPage() {
         {statCards.map((stat, index) => {
           const Icon = statIcons[stat.key];
           const colors = statColors[stat.key];
+          const linkTo = stat.key === 'branches' ? '/branches' : '/users';
           return (
             <motion.div
               key={stat.key}
@@ -91,28 +93,30 @@ export function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`bg-gradient-to-br ${colors.bg} border ${colors.border} hover:shadow-xl transition-all duration-300`}>
-                <div className="flex items-center gap-4">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`p-4 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-lg`}
-                  >
-                    <Icon className={`w-7 h-7 ${colors.icon}`} />
-                  </motion.div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
-                    <motion.p
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.1, type: 'spring', stiffness: 200 }}
-                      className="text-3xl font-bold text-gray-900 dark:text-white"
+              <Link to={linkTo}>
+                <Card className={`bg-gradient-to-br ${colors.bg} border ${colors.border} hover:shadow-xl transition-all duration-300 cursor-pointer`}>
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`p-4 rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-lg`}
                     >
-                      {stat.value}
-                    </motion.p>
+                      <Icon className={`w-7 h-7 ${colors.icon}`} />
+                    </motion.div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+                      <motion.p
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.3 + index * 0.1, type: 'spring', stiffness: 200 }}
+                        className="text-3xl font-bold text-gray-900 dark:text-white"
+                      >
+                        {stat.value}
+                      </motion.p>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </Link>
             </motion.div>
           );
         })}

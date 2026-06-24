@@ -12,7 +12,7 @@ import { ConfirmEmailPage } from './pages/auth/ConfirmEmailPage';
 import { BranchDetailPage } from './pages/home/BranchDetailPage';
 import { CategoryItemsPage } from './pages/home/CategoryItemsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { StoresPage } from './pages/dashboard/StoresPage';
+import { StorePage } from './pages/dashboard/StorePage';
 import { BranchesPage } from './pages/dashboard/BranchesPage';
 import { UsersPage } from './pages/dashboard/UsersPage';
 import { UserDetailPage } from './pages/dashboard/UserDetailPage';
@@ -37,7 +37,7 @@ function App() {
                 <Route path="/branches/:id" element={<BranchDetailPage />} />
                 <Route path="/categories/:id/items" element={<CategoryItemsPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/stores" element={<StoresPage />} />
+                <Route path="/store" element={<StorePage />} />
                 <Route path="/branches" element={<BranchesPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/users/:id" element={<UserDetailPage />} />

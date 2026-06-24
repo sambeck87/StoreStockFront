@@ -16,7 +16,10 @@ export function Layout() {
 
   console.log('Layout - permissionResources:', permissionResources);
 
-  const canViewStores = user && (!!user.store_id || (permissionResources['store']?.length ?? 0) > 0);
+  const canViewStoreOrUsers = user && (
+    (permissionResources['store']?.includes('update') ?? false) ||
+    (permissionResources['user']?.length ?? 0) > 0
+  );
   const canViewBranches = user && (permissionResources['branch']?.length ?? 0) > 0;
   const canViewUsers = user && (permissionResources['user']?.length ?? 0) > 0;
   const canViewCategories = user && (
@@ -29,11 +32,9 @@ export function Layout() {
     (permissionResources['global_permission']?.length ?? 0) > 0
   );
 
-  console.log('Layout - canView:', { canViewStores, canViewBranches, canViewUsers, canViewCategories, canViewPermissions });
-
   const navItems = [
-    { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard', show: true },
-    { path: '/stores', icon: Store, labelKey: 'nav.stores', show: canViewStores },
+    { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard', show: canViewStoreOrUsers },
+    { path: '/store', icon: Store, labelKey: 'nav.store', show: canViewStoreOrUsers },
     { path: '/branches', icon: Building2, labelKey: 'nav.branches', show: canViewBranches },
     { path: '/users', icon: Users, labelKey: 'nav.users', show: canViewUsers },
     { path: '/categories', icon: Package, labelKey: 'nav.categories', show: canViewCategories },

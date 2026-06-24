@@ -5,7 +5,6 @@ import { api } from '../../api';
 import { Card, Button, Modal, Input, Table } from '../../components/common';
 import type { Item, Branch } from '../../types';
 import { ArrowLeft, Package, Filter, Trash2, Power, Save, Plus, Minus } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 
 const NumberControl = ({ label, value, onChange, prefix, decimals = false }: any) => {
   const handleDecrement = () => {
@@ -71,10 +70,10 @@ export function CategoryItemsPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [categoryName, setCategoryName] = useState('');
   const [filters, setFilters] = useState({
     branch_id: '',
     active: 'true',
@@ -93,14 +92,30 @@ export function CategoryItemsPage() {
   });
 
   const [branchesLoaded, setBranchesLoaded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (user?.branches && user.branches.length > 0) {
-      setBranches(user.branches);
-      setFilters(prev => ({ ...prev, branch_id: String(user.branches![0].id) }));
+    if (id) {
+      api.getCategory(Number(id)).then(cat => setCategoryName(cat.name)).catch(() => {});
     }
-    setBranchesLoaded(true);
-  }, [user]);
+  }, [id]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const data = await api.getUserBranches();
+        setBranches(data);
+        if (data.length > 0) {
+          setFilters(prev => ({ ...prev, branch_id: String(data[0].id) }));
+        }
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      } finally {
+        setBranchesLoaded(true);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -125,7 +140,7 @@ export function CategoryItemsPage() {
       }
     };
     fetchItems();
-  }, [id, filters, branchesLoaded]);
+  }, [id, filters, branchesLoaded, refreshKey]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -238,16 +253,9 @@ export function CategoryItemsPage() {
         newItemData.branch_id = formData.branch_id;
 
         await api.createItem({ ...newItemData, category_id: Number(id) });
-        
-        if (filters.branch_id) {
-          const branchId = Number(filters.branch_id);
-          const allItems = await api.getBranchItems(branchId);
-          const categoryId = Number(id);
-          const filteredItems = allItems.filter(item => item.category_id === categoryId);
-          setItems(filteredItems);
-        }
       }
       setIsModalOpen(false);
+      setRefreshKey(k => k + 1);
     } catch (err) {
       const message = api.getErrorMessage(err);
       alert(message);
@@ -263,13 +271,7 @@ export function CategoryItemsPage() {
           category_id: Number(id)
         });
 
-        if (filters.branch_id) {
-          const branchId = Number(filters.branch_id);
-          const allItems = await api.getBranchItems(branchId);
-          const categoryId = Number(id);
-          const filteredItems = allItems.filter(item => item.category_id === categoryId);
-          setItems(filteredItems);
-        }
+        setRefreshKey(k => k + 1);
       } catch (err) {
         const message = api.getErrorMessage(err);
         alert(message);
@@ -473,7 +475,7 @@ export function CategoryItemsPage() {
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {t('items.title')}
+          {categoryName || t('items.title')}
         </h1>
 
         <div className="flex flex-wrap items-center gap-3">

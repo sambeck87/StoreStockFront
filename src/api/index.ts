@@ -31,6 +31,9 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
+        if (error.response?.status === 401 && !error.config?.url?.includes('/sessions')) {
+          window.dispatchEvent(new CustomEvent('auth:expired'));
+        }
         return Promise.reject(error);
       }
     );
