@@ -45,7 +45,7 @@ function App() {
                 <Route path="/permissions" element={<PermissionsPage />} />
               </Route>
             </Route>
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/categories" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

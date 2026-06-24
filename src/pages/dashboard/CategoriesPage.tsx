@@ -2,14 +2,20 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Table, Modal, Input } from '../../components/common';
+import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../api';
 import type { Category } from '../../types';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
 
 export function CategoriesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { permissionResources } = useAuth();
+
+  const hasCategoryPermission = (permissionResources['category']?.length ?? 0) > 0;
+  const noPermission = !hasCategoryPermission;
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -116,6 +122,19 @@ export function CategoriesPage() {
       ),
     },
   ];
+
+  if (noPermission) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+          <ShieldAlert className="w-10 h-10 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 text-center max-w-md">
+          {t('categories.noPermission')}
+        </h2>
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -20,12 +20,13 @@
     "alreadyHaveAccount": "¿Ya tienes cuenta?"
   },
   "nav": {
+    "menu": "Menú",
     "dashboard": "Panel",
     "stores": "Tiendas",
     "store": "Tienda",
     "branches": "Sucursales",
     "users": "Usuarios",
-    "categories": "Categorías",
+    "categories": "Inventario",
     "permissions": "Permisos",
     "settings": "Configuración"
   },
@@ -122,7 +123,7 @@
     "inactive": "Inactivo"
   },
   "categories": {
-    "title": "Categorías",
+    "title": "Inventario",
     "create": "Nueva Categoría",
     "edit": "Editar Categoría",
     "delete": "Eliminar Categoría",
@@ -132,7 +133,8 @@
     "inactive": "Inactivo",
     "confirmDelete": "¿Está seguro de eliminar esta categoría?",
     "noCategories": "No hay categorías",
-    "viewItems": "Ver artículos"
+    "viewItems": "Ver artículos",
+    "noPermission": "Aún no cuentas con permisos suficientes para acceder a esta sección."
   },
   "common": {
     "save": "Guardar",

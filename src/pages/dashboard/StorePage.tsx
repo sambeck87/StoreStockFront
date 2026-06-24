@@ -9,27 +9,36 @@ import { validateForm, validationMessages } from '../../utils/validation';
 
 export function StorePage() {
   const { t } = useTranslation();
-  const { user, hasPermission } = useAuth();
+  const { user, hasPermission, permissionResources } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: '', address: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   const canEdit = hasPermission('store', 'update');
+  const canViewStore = (permissionResources['store']?.length ?? 0) > 0;
 
   const fetchStore = async () => {
-    if (!user?.store_id) {
-      setIsLoading(false);
-      return;
-    }
     try {
-      const data = await api.getStore(user.store_id);
-      setStore(data);
-      setFormData({ name: data.name, address: data.address || '', phone: data.phone || '' });
-    } catch (error) {
-      console.error('Error fetching store:', error);
+      setError('');
+      if (user?.store_id) {
+        const data = await api.getStore(user.store_id);
+        setStore(data);
+        setFormData({ name: data.name, address: data.address || '', phone: data.phone || '' });
+      } else if (canViewStore) {
+        const stores = await api.getStores();
+        if (stores.length > 0) {
+          setStore(stores[0]);
+          setFormData({ name: stores[0].name, address: stores[0].address || '', phone: stores[0].phone || '' });
+        }
+      }
+    } catch (err) {
+      const message = api.getErrorMessage(err);
+      setError(message);
+      console.error('Error fetching store:', err);
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +76,10 @@ export function StorePage() {
       const updated = await api.updateStore(store.id, formData);
       setStore(updated);
       setIsEditing(false);
-    } catch (error) {
-      const message = api.getErrorMessage(error);
+    } catch (err) {
+      const message = api.getErrorMessage(err);
       alert(message);
-      console.error('Error updating store:', error);
+      console.error('Error updating store:', err);
     } finally {
       setSaving(false);
     }
@@ -86,8 +95,12 @@ export function StorePage() {
 
   if (!store) {
     return (
-      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-        {t('store.noStoreAssigned')}
+      <div className="text-center py-12">
+        {error ? (
+          <p className="text-red-500 dark:text-red-400">{error}</p>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">{t('store.noStoreAssigned')}</p>
+        )}
       </div>
     );
   }
