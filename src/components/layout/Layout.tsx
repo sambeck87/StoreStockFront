@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../common';
-import { Sun, Moon, Globe, Store, Building2, Users, Package, LayoutDashboard, LogOut, Menu, X, Shield } from 'lucide-react';
+import { Sun, Moon, Globe, Store, Building2, Users, Package, LayoutDashboard, LogOut, Menu, X, Shield, ClipboardList } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,13 +35,14 @@ export function Layout() {
     (permissionResources['category']?.length ?? 0) > 0 ||
     (permissionResources['item']?.length ?? 0) > 0
   );
+  const canViewInventory = user && (permissionResources['item']?.length ?? 0) > 0;
   const canViewPermissions = user && (
     (permissionResources['permission']?.length ?? 0) > 0 || 
     (permissionResources['role']?.length ?? 0) > 0 || 
     (permissionResources['global_permission']?.length ?? 0) > 0
   );
 
-  const hasAnyPageAccess = canViewStore || canViewBranches || canViewUsers || canViewCategories || canViewPermissions;
+  const hasAnyPageAccess = canViewStore || canViewBranches || canViewUsers || canViewCategories || canViewInventory || canViewPermissions;
 
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard', show: hasAnyPageAccess },
@@ -49,6 +50,7 @@ export function Layout() {
     { path: '/branches', icon: Building2, labelKey: 'nav.branches', show: canViewBranches },
     { path: '/users', icon: Users, labelKey: 'nav.users', show: canViewUsers },
     { path: '/categories', icon: Package, labelKey: 'nav.categories', show: canViewCategories },
+    { path: '/inventory', icon: ClipboardList, labelKey: 'nav.inventory', show: canViewInventory },
     { path: '/permissions', icon: Shield, labelKey: 'nav.permissions', show: canViewPermissions },
   ].filter(item => item.show);
 

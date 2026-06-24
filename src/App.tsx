@@ -17,6 +17,7 @@ import { BranchesPage } from './pages/dashboard/BranchesPage';
 import { UsersPage } from './pages/dashboard/UsersPage';
 import { UserDetailPage } from './pages/dashboard/UserDetailPage';
 import { CategoriesPage } from './pages/dashboard/CategoriesPage';
+import { InventoryPage } from './pages/dashboard/InventoryPage';
 import { PermissionsPage } from './pages/dashboard/PermissionsPage';
 import './i18n';
 
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/users/:id" element={<UserDetailPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/permissions" element={<PermissionsPage />} />
               </Route>
             </Route>

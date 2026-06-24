@@ -26,7 +26,8 @@
     "store": "Tienda",
     "branches": "Sucursales",
     "users": "Usuarios",
-    "categories": "Inventario",
+    "categories": "Categorías",
+    "inventory": "Inventario",
     "permissions": "Permisos",
     "settings": "Configuración"
   },
@@ -123,7 +124,7 @@
     "inactive": "Inactivo"
   },
   "categories": {
-    "title": "Inventario",
+    "title": "Categorías",
     "create": "Nueva Categoría",
     "edit": "Editar Categoría",
     "delete": "Eliminar Categoría",
@@ -135,6 +136,27 @@
     "noCategories": "No hay categorías",
     "viewItems": "Ver artículos",
     "noPermission": "Aún no cuentas con permisos suficientes para acceder a esta sección."
+  },
+  "inventory": {
+    "title": "Inventario",
+    "name": "Nombre",
+    "measure": "Medida",
+    "category": "Categoría",
+    "currentQuantity": "Stock Actual",
+    "minimumQuantity": "Stock Mínimo",
+    "status": "Estado",
+    "allBranches": "Todas las sucursales",
+    "allCategories": "Todas las categorías",
+    "allStatus": "Todos los estados",
+    "allActive": "Todos",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "quantityStatus": "Estado de Stock",
+    "qtyComplete": "Completo",
+    "qtyLow": "Bajo mínimo",
+    "qtyEmpty": "Sin existencia",
+    "noItems": "No hay artículos",
+    "filters": "Filtros"
   },
   "common": {
     "save": "Guardar",

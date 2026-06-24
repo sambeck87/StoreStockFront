@@ -26,7 +26,8 @@
     "store": "Store",
     "branches": "Branches",
     "users": "Users",
-    "categories": "Stock",
+    "categories": "Categories",
+    "inventory": "Inventory",
     "permissions": "Permissions",
     "settings": "Settings"
   },
@@ -122,7 +123,7 @@
     "inactive": "Inactive"
   },
   "categories": {
-    "title": "Stock",
+    "title": "Categories",
     "create": "New Category",
     "edit": "Edit Category",
     "delete": "Delete Category",
@@ -134,6 +135,27 @@
     "noCategories": "No categories",
     "viewItems": "View items",
     "noPermission": "You don't have sufficient permissions to access this section."
+  },
+  "inventory": {
+    "title": "Inventory",
+    "name": "Name",
+    "measure": "Measure",
+    "category": "Category",
+    "currentQuantity": "Current Stock",
+    "minimumQuantity": "Min. Stock",
+    "status": "Status",
+    "allBranches": "All branches",
+    "allCategories": "All categories",
+    "allStatus": "All statuses",
+    "allActive": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "quantityStatus": "Stock Status",
+    "qtyComplete": "Complete",
+    "qtyLow": "Low stock",
+    "qtyEmpty": "Out of stock",
+    "noItems": "No items",
+    "filters": "Filters"
   },
   "branches": {
     "title": "Branches",

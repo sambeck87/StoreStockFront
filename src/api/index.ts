@@ -166,6 +166,18 @@ class ApiService {
     await this.api.delete(`/categories/${id}`);
   }
 
+  async getInventory(params?: { branch_id?: number; category_id?: number; active?: string; quantity_status?: string }): Promise<Item[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
+    if (params?.category_id) queryParams.append('category_id', String(params.category_id));
+    if (params?.active) queryParams.append('active', params.active);
+    if (params?.quantity_status) queryParams.append('quantity_status', params.quantity_status);
+
+    const url = queryParams.toString() ? `/inventory?${queryParams}` : '/inventory';
+    const { data } = await this.api.get<{ items: Item[] }>(url);
+    return data.items;
+  }
+
   async getItems(params?: { category_id?: number; branch_id?: number; active?: boolean }): Promise<Item[]> {
     const queryParams = new URLSearchParams();
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));

@@ -78,10 +78,14 @@ export interface Item {
   cost?: number;
   active?: boolean;
   category_id?: number;
+  category_name?: string;
   updated_by?: string;
   created_by?: string;
   current_quantity?: number;
   minimum_quantity?: number;
+  quantity_status?: 'complete' | 'low' | 'empty' | null;
+  branch_id?: number;
+  branch_name?: string;
   price?: number;
   sku?: string;
   stock?: number;
