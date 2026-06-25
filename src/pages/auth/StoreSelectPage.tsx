@@ -42,7 +42,7 @@ export function StoreSelectPage() {
     try {
       const updatedUser = await api.updateUser(user.id, { store_id: selectedStore } as any);
       updateUser(updatedUser);
-      navigate('/dashboard');
+      navigate('/inventory');
     } catch (err) {
       console.error('Error setting store:', err);
       setError(t('stores.selectError'));
@@ -59,7 +59,7 @@ export function StoreSelectPage() {
       const newStore = await api.createStore({ name: newStoreName.trim() });
       const updatedUser = await api.updateUser(user.id, { store_id: newStore.id } as any);
       updateUser(updatedUser);
-      navigate('/dashboard');
+      navigate('/inventory');
     } catch (err) {
       console.error('Error creating store:', err);
       setError(t('stores.createError'));

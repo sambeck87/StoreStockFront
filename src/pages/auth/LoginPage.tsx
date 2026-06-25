@@ -33,7 +33,7 @@ export function LoginPage() {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.store_id) {
-          navigate('/categories');
+          navigate('/inventory');
         } else {
           navigate('/store-select');
         }

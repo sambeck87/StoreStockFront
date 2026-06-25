@@ -66,7 +66,7 @@ export function Layout() {
         <div className="px-4 mx-auto max-w-7xl">
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-8">
-              <Link to="/categories" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <Link to="/inventory" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {t('app.name')}
               </Link>
               <div ref={navMenuRef} className="relative hidden md:block">

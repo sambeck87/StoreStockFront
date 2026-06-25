@@ -533,11 +533,13 @@ export function CategoryItemsPage() {
             columns={columns} 
             keyExtractor={(i) => i.id} 
             emptyMessage={t('items.noItems')}
-            rowClassName={(item) => 
-              (item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity)
-                ? 'bg-red-50/60 dark:bg-red-900/20'
-                : ''
-            }
+            rowClassName={(item) => {
+              const qty = item.current_quantity;
+              const min = item.minimum_quantity;
+              if (qty == null || qty <= 0) return 'bg-red-100 dark:bg-red-900/60';
+              if (min != null && qty < min) return 'bg-purple-100 dark:bg-fuchsia-900/50';
+              return '';
+            }}
           />
         </Card>
       )}

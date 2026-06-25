@@ -13,8 +13,8 @@ export function CategoriesPage() {
   const navigate = useNavigate();
   const { permissionResources } = useAuth();
 
-  const hasCategoryPermission = (permissionResources['category']?.length ?? 0) > 0;
-  const noPermission = !hasCategoryPermission;
+  const canAccessCategories = (permissionResources['category']?.length ?? 0) > 0 || (permissionResources['item']?.length ?? 0) > 0;
+  const noPermission = !canAccessCategories;
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);

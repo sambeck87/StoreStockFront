@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 
 interface Column<T> {
   key: string;
@@ -46,12 +45,9 @@ export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data'
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800/30">
-          {data.map((item, index) => (
-            <motion.tr
+          {data.map((item) => (
+            <tr
               key={keyExtractor(item)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
               onClick={() => onRowClick && onRowClick(item)}
               className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(item) : ''} ${onRowClick ? 'cursor-pointer' : ''}`}
             >
@@ -65,7 +61,7 @@ export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data'
                     : (item as Record<string, unknown>)[col.key] as ReactNode}
                 </td>
               ))}
-            </motion.tr>
+            </tr>
           ))}
         </tbody>
       </table>
