@@ -5,7 +5,7 @@ import { Button, Card, Table } from '../../components/common';
 import { api } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Item, Branch, Category } from '../../types';
-import { Filter, RotateCcw, Package, Save, Power, Minus, Plus } from 'lucide-react';
+import { Filter, RotateCcw, Package, Save, Power, Minus, Plus, Download } from 'lucide-react';
 
 const QUANTITY_STATUS_OPTIONS = ['complete', 'low', 'empty'] as const;
 
@@ -25,6 +25,7 @@ export function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [drafts, setDrafts] = useState<Record<string, Partial<Item>>>({});
   const [savingRow, setSavingRow] = useState<string | null>(null);
+  const [exportData, setExportData] = useState<{ id: number; status: string; error?: string } | null>(null);
 
   const canViewItems = (permissionResources['item']?.length ?? 0) > 0;
 
@@ -118,6 +119,49 @@ export function InventoryPage() {
       console.error('Error refetching inventory:', err);
     }
   };
+
+  const handleExport = async () => {
+    try {
+      const params: Record<string, string> = {};
+      if (branchId) params.branch_id = branchId;
+      if (categoryId) params.category_id = categoryId;
+      if (quantityStatus) params.quantity_status = quantityStatus;
+      if (active) params.active = active;
+
+      const exportResult = await api.createInventoryExport(params);
+      setExportData({ id: exportResult.id, status: exportResult.status });
+    } catch (err) {
+      const message = api.getErrorMessage(err);
+      alert(message);
+    }
+  };
+
+  useEffect(() => {
+    if (!exportData || exportData.status === 'completed' || exportData.status === 'failed') return;
+
+    const interval = setInterval(async () => {
+      try {
+        const result = await api.getInventoryExport(exportData.id);
+        setExportData({ id: result.id, status: result.status, error: result.error_message ?? undefined });
+
+        if (result.status === 'completed') {
+          const blob = await api.downloadInventoryExport(exportData.id);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `inventario_${exportData.id}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      } catch {
+        setExportData(null);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [exportData]);
 
   const saveRow = async (item: Item) => {
     const key = draftKey(item);
@@ -362,6 +406,23 @@ export function InventoryPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('inventory.title')}</h1>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleExport}
+          disabled={exportData?.status === 'pending' || exportData?.status === 'processing'}
+        >
+          {exportData?.status === 'pending' || exportData?.status === 'processing' ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          {exportData?.status === 'pending' || exportData?.status === 'processing'
+            ? t('inventory.exporting')
+            : exportData?.status === 'failed'
+            ? t('inventory.exportFailed')
+            : t('inventory.exportCsv')}
+        </Button>
       </div>
 
       <Card className="mb-6">
@@ -427,7 +488,8 @@ export function InventoryPage() {
           </div>
         ) : (
           <>
-            <div className="md:hidden p-4 space-y-3">
+            <div className="block min-[1230px]:hidden p-4">
+              <div className="grid grid-cols-1 min-[946px]:grid-cols-2 gap-3">
               {items.length === 0 ? (
                 <p className="text-center py-8 text-gray-500 dark:text-gray-400">{t('inventory.noItems')}</p>
               ) : items.map((item) => {
@@ -484,8 +546,9 @@ export function InventoryPage() {
                   </div>
                 );
               })}
+              </div>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden min-[1230px]:block">
               <Table
                 data={items}
                 columns={columns}

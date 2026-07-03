@@ -121,3 +121,12 @@ export interface RegisterData {
   password_confirmation: string;
   full_name: string;
 }
+
+export interface InventoryExport {
+  id: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  filters: Record<string, string>;
+  error_message: string | null;
+  download_url: string | null;
+  created_at: string;
+}

@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
-import type { AuthResponse, LoginCredentials, RegisterData, User, Store, Branch, Item, Role, GlobalPermission, Category } from '../types';
+import type { AuthResponse, LoginCredentials, RegisterData, User, Store, Branch, Item, Role, GlobalPermission, Category, InventoryExport } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -324,6 +324,23 @@ class ApiService {
 
   async confirmEmail(token: string): Promise<void> {
     await this.api.patch(`/confirmations/${token}`);
+  }
+
+  async createInventoryExport(params: Record<string, string>): Promise<InventoryExport> {
+    const { data } = await this.api.post<InventoryExport>('/inventory/exports', params);
+    return data;
+  }
+
+  async getInventoryExport(id: number): Promise<InventoryExport> {
+    const { data } = await this.api.get<InventoryExport>(`/inventory/exports/${id}`);
+    return data;
+  }
+
+  async downloadInventoryExport(id: number): Promise<Blob> {
+    const { data } = await this.api.get<Blob>(`/inventory/exports/${id}/download`, {
+      responseType: 'blob',
+    });
+    return data;
   }
 }
 

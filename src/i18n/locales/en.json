@@ -155,7 +155,10 @@
     "qtyLow": "Low stock",
     "qtyEmpty": "Out of stock",
     "noItems": "No items",
-    "filters": "Filters"
+    "filters": "Filters",
+    "exportCsv": "Download CSV",
+    "exporting": "Exporting...",
+    "exportFailed": "Export failed"
   },
   "branches": {
     "title": "Branches",

@@ -92,13 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken && storedUser && storedUser !== 'undefined') {
         try {
           const parsedUser = JSON.parse(storedUser);
+          const freshUser = await api.getUser(parsedUser.id);
           setToken(storedToken);
-          setUserState(parsedUser);
-          const extractedPerms = await loadPermissions(parsedUser);
+          setUserState(freshUser);
+          const extractedPerms = await loadPermissions(freshUser);
           setPermissionResources(extractedPerms);
         } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          setToken(null);
+          setUserState(null);
+          setPermissionResources({});
         }
       }
       setIsLoading(false);

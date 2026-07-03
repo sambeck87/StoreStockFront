@@ -156,7 +156,10 @@
     "qtyLow": "Bajo mínimo",
     "qtyEmpty": "Sin existencia",
     "noItems": "No hay artículos",
-    "filters": "Filtros"
+    "filters": "Filtros",
+    "exportCsv": "Descargar CSV",
+    "exporting": "Exportando...",
+    "exportFailed": "Error al exportar"
   },
   "common": {
     "save": "Guardar",
