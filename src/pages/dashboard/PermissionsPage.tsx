@@ -1,82 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Table, Modal, Input } from '../../components/common';
+import { Button, Card, Table, Modal, Input, Skeleton, SkeletonTable, EmptyState } from '../../components/common';
 import { api } from '../../api';
 import type { Role, GlobalPermission } from '../../types';
-import { Plus, Pencil, Trash2, Shield, ShieldCheck } from 'lucide-react';
+import { Plus, Pencil, Trash2, Shield, ShieldCheck, Loader2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const GLOBAL_ONLY_RESOURCES = ['role', 'permission', 'global_permission', 'store', 'branch', 'category'];
 
 const PERMISSIONS_CONFIG: Record<string, { label: string; actions: Record<string, string> }> = {
-  user: {
-    label: 'Usuarios',
-    actions: {
-      index: 'Ver listado de usuarios',
-      show: 'Ver detalles del usuario',
-      create: 'Crear usuarios',
-      update: 'Actualizar usuarios',
-      delete: 'Eliminar usuarios',
-      manage: 'Administrar usuarios',
-      revoke_access: 'Revocar acceso a sucursales',
-    },
-  },
-  store: {
-    label: 'Tiendas',
-    actions: {
-      show: 'Ver detalles de la tienda',
-      update: 'Actualizar tienda',
-    },
-  },
-  branch: {
-    label: 'Sucursales',
-    actions: {
-      index: 'Ver listado de sucursales',
-      show: 'Ver detalles de la sucursal',
-      create: 'Crear sucursales',
-      update: 'Actualizar sucursales',
-      delete: 'Eliminar sucursales',
-    },
-  },
-  category: {
-    label: 'Categorías',
-    actions: {
-      index: 'Ver listado de categorías',
-      show: 'Ver detalles de la categoría',
-      create: 'Crear categorías',
-      update: 'Actualizar categorías',
-      delete: 'Eliminar categorías',
-    },
-  },
-  item: {
-    label: 'Artículos',
-    actions: {
-      index: 'Ver listado de artículos',
-      show: 'Ver detalles del artículo',
-      create: 'Crear artículos',
-      update: 'Actualizar artículos',
-      delete: 'Eliminar artículos',
-    },
-  },
-  role: {
-    label: 'Roles',
-    actions: {
-      index: 'Ver listado de roles',
-      show: 'Ver detalles del rol',
-      create: 'Crear roles',
-      update: 'Actualizar roles',
-      delete: 'Eliminar roles',
-    },
-  },
-  global_permission: {
-    label: 'Permisos Globales',
-    actions: {
-      index: 'Ver listado de permisos globales',
-      show: 'Ver detalles del permiso global',
-      create: 'Crear permisos globales',
-      update: 'Actualizar permisos globales',
-      delete: 'Eliminar permisos globales',
-    },
-  },
+  user: { label: 'Usuarios', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar', manage: 'Administrar', revoke_access: 'Revocar acceso' } },
+  store: { label: 'Tiendas', actions: { show: 'Ver detalles', update: 'Actualizar' } },
+  branch: { label: 'Sucursales', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar' } },
+  category: { label: 'Categorías', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar' } },
+  item: { label: 'Artículos', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar' } },
+  role: { label: 'Roles', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar' } },
+  global_permission: { label: 'Permisos Globales', actions: { index: 'Ver listado', show: 'Ver detalles', create: 'Crear', update: 'Actualizar', delete: 'Eliminar' } },
 };
 
 type TabType = 'roles' | 'permissions';
@@ -97,7 +36,6 @@ export function PermissionsPage() {
     try {
       setError('');
       setIsLoading(true);
-      
       if (activeTab === 'roles') {
         const data = await api.getRoles();
         setRoles(data.filter(r => r.name !== 'super_admin'));
@@ -109,19 +47,14 @@ export function PermissionsPage() {
       const message = api.getErrorMessage(err);
       setError(message);
       console.error('Error fetching data:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+  useEffect(() => { fetchData(); }, [activeTab]);
 
-  const getAvailableResources = (): typeof PERMISSIONS_CONFIG => {
+  const getAvailableResources = () => {
     if (activeTab === 'roles') {
-      return Object.entries(PERMISSIONS_CONFIG)
-        .filter(([key]) => !GLOBAL_ONLY_RESOURCES.includes(key))
+      return Object.entries(PERMISSIONS_CONFIG).filter(([key]) => !GLOBAL_ONLY_RESOURCES.includes(key))
         .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as typeof PERMISSIONS_CONFIG);
     }
     return PERMISSIONS_CONFIG;
@@ -131,41 +64,21 @@ export function PermissionsPage() {
     if (item) {
       setEditingItem(item);
       setIsLoadingItem(true);
-      
       try {
-        let freshItem: Role | GlobalPermission;
-        if (activeTab === 'roles') {
-          freshItem = await api.getRole(item.id);
-        } else {
-          freshItem = await api.getGlobalPermission(item.id);
-        }
-        
+        const freshItem = activeTab === 'roles' ? await api.getRole(item.id) : await api.getGlobalPermission(item.id);
         const itemPermissions = freshItem.permissions || {};
         const permissionsObj: Record<string, string[]> = {};
         Object.keys(PERMISSIONS_CONFIG).forEach(key => {
           const permValue = itemPermissions[key];
-          if (Array.isArray(permValue)) {
-            permissionsObj[key] = permValue;
-          } else {
-            permissionsObj[key] = [];
-          }
+          permissionsObj[key] = Array.isArray(permValue) ? permValue : [];
         });
-        
-        setFormData({
-          name: freshItem.name,
-          permissions: permissionsObj,
-        });
-      } catch (err) {
-        console.error('Error fetching item:', err);
-      } finally {
-        setIsLoadingItem(false);
-      }
+        setFormData({ name: freshItem.name, permissions: permissionsObj });
+      } catch (err) { console.error('Error fetching item:', err); }
+      finally { setIsLoadingItem(false); }
     } else {
       setEditingItem(null);
       const defaultPermissions: Record<string, string[]> = {};
-      Object.keys(PERMISSIONS_CONFIG).forEach(key => {
-        defaultPermissions[key] = [];
-      });
+      Object.keys(PERMISSIONS_CONFIG).forEach(key => { defaultPermissions[key] = []; });
       setFormData({ name: '', permissions: defaultPermissions });
     }
     setIsModalOpen(true);
@@ -178,152 +91,56 @@ export function PermissionsPage() {
     setFormData(prev => {
       const currentPermissions = prev.permissions[resource] || [];
       let newPermissions: string[];
-
       if (checked) {
-        newPermissions = currentPermissions.includes(action)
-          ? currentPermissions
-          : [...currentPermissions, action];
+        newPermissions = currentPermissions.includes(action) ? currentPermissions : [...currentPermissions, action];
         if (WRITE_ACTIONS.includes(action)) {
-          READ_ACTIONS.forEach(readAction => {
-            if (!newPermissions.includes(readAction)) {
-              newPermissions.push(readAction);
-            }
-          });
+          READ_ACTIONS.forEach(readAction => { if (!newPermissions.includes(readAction)) newPermissions.push(readAction); });
         }
       } else {
         newPermissions = currentPermissions.filter(p => p !== action);
-        if (READ_ACTIONS.includes(action)) {
-          newPermissions = newPermissions.filter(p => !WRITE_ACTIONS.includes(p));
-        }
+        if (READ_ACTIONS.includes(action)) newPermissions = newPermissions.filter(p => !WRITE_ACTIONS.includes(p));
       }
-
-      return {
-        ...prev,
-        permissions: {
-          ...prev.permissions,
-          [resource]: newPermissions,
-        },
-      };
+      return { ...prev, permissions: { ...prev.permissions, [resource]: newPermissions } };
     });
   };
 
   const handleSelectAllResource = (resource: string, allActions: string[], checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        [resource]: checked ? [...allActions] : [],
-      },
-    }));
+    setFormData(prev => ({ ...prev, permissions: { ...prev.permissions, [resource]: checked ? [...allActions] : [] } }));
   };
 
   const handleSubmit = async () => {
-    if (!formData.name.trim()) {
-      alert('El nombre es requerido');
-      return;
-    }
-
+    if (!formData.name.trim()) { toast.error('El nombre es requerido'); return; }
     try {
-      const itemData = {
-        name: formData.name,
-        permissions: formData.permissions,
-      };
-      
+      const itemData = { name: formData.name, permissions: formData.permissions };
       if (editingItem) {
-        if (activeTab === 'roles') {
-          await api.updateRole(editingItem.id, itemData);
-        } else {
-          await api.updateGlobalPermission(editingItem.id, itemData);
-        }
+        if (activeTab === 'roles') { await api.updateRole(editingItem.id, itemData); } else { await api.updateGlobalPermission(editingItem.id, itemData); }
       } else {
-        if (activeTab === 'roles') {
-          await api.createRole(itemData);
-        } else {
-          await api.createGlobalPermission(itemData);
-        }
+        if (activeTab === 'roles') { await api.createRole(itemData); } else { await api.createGlobalPermission(itemData); }
       }
       setIsModalOpen(false);
       fetchData();
-    } catch (err) {
-      const message = api.getErrorMessage(err);
-      alert(message);
-      console.error('Error saving:', err);
-    }
+    } catch (err) { const message = api.getErrorMessage(err); toast.error(message); console.error('Error saving:', err); }
   };
 
   const handleDelete = async (id: number) => {
-    const confirmMessage = activeTab === 'roles' 
-      ? t('permissions.confirmDeleteRole') 
-      : t('permissions.confirmDeletePermission');
-    
-    if (window.confirm(confirmMessage)) {
+    if (window.confirm(activeTab === 'roles' ? t('permissions.confirmDeleteRole') : t('permissions.confirmDeletePermission'))) {
       try {
-        if (activeTab === 'roles') {
-          await api.deleteRole(id);
-        } else {
-          await api.deleteGlobalPermission(id);
-        }
+        if (activeTab === 'roles') { await api.deleteRole(id); } else { await api.deleteGlobalPermission(id); }
         fetchData();
-      } catch (err) {
-        const message = api.getErrorMessage(err);
-        alert(message);
-        console.error('Error deleting:', err);
-      }
+      } catch (err) { const message = api.getErrorMessage(err); toast.error(message); console.error('Error deleting:', err); }
     }
   };
 
   const roleColumns = [
     { key: 'name', header: t('permissions.name') },
-    { 
-      key: 'permissions', 
-      header: t('permissions.permissions'), 
-      render: (role: Role) => {
-        const perms = role.permissions || {};
-        const count = Object.values(perms).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
-        return count > 0 ? `${count} ${t('permissions.assigned')}` : t('permissions.none');
-      }
-    },
-    {
-      key: 'actions',
-      header: t('common.actions'),
-      render: (role: Role) => (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleOpenModal(role)}>
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleDelete(role.id)}>
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
-        </div>
-      ),
-    },
+    { key: 'permissions', header: t('permissions.permissions'), render: (role: Role) => { const perms = role.permissions || {}; const count = Object.values(perms).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0); return <span className="text-xs text-gray-500">{count > 0 ? `${count} ${t('permissions.assigned')}` : t('permissions.none')}</span>; } },
+    { key: 'actions', header: '', render: (role: Role) => (<div className="flex gap-1 justify-end"><Button variant="ghost" size="sm" onClick={() => handleOpenModal(role)}><Pencil className="w-3.5 h-3.5" /></Button><Button variant="ghost" size="sm" onClick={() => handleDelete(role.id)} className="text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button></div>) },
   ];
 
   const permissionColumns = [
     { key: 'name', header: t('permissions.name') },
-    { 
-      key: 'permissions', 
-      header: t('permissions.permissions'), 
-      render: (perm: GlobalPermission) => {
-        const perms = perm.permissions || {};
-        const count = Object.values(perms).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
-        return count > 0 ? `${count} ${t('permissions.assigned')}` : t('permissions.none');
-      }
-    },
-    {
-      key: 'actions',
-      header: t('common.actions'),
-      render: (perm: GlobalPermission) => (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleOpenModal(perm)}>
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleDelete(perm.id)}>
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
-        </div>
-      ),
-    },
+    { key: 'permissions', header: t('permissions.permissions'), render: (perm: GlobalPermission) => { const perms = perm.permissions || {}; const count = Object.values(perms).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0); return <span className="text-xs text-gray-500">{count > 0 ? `${count} ${t('permissions.assigned')}` : t('permissions.none')}</span>; } },
+    { key: 'actions', header: '', render: (perm: GlobalPermission) => (<div className="flex gap-1 justify-end"><Button variant="ghost" size="sm" onClick={() => handleOpenModal(perm)}><Pencil className="w-3.5 h-3.5" /></Button><Button variant="ghost" size="sm" onClick={() => handleDelete(perm.id)} className="text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button></div>) },
   ];
 
   const data = activeTab === 'roles' ? roles : permissions;
@@ -336,34 +153,22 @@ export function PermissionsPage() {
       const allActions = Object.keys(config.actions);
       const selectedCount = formData.permissions[resource]?.length || 0;
       const allSelected = selectedCount === allActions.length;
-
       return (
-        <div key={resource} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+        <div key={resource} className="border border-[var(--color-border)] dark:border-gray-700 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">
-              {config.label}
-            </h4>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={(e) => handleSelectAllResource(resource, allActions, e.target.checked)}
-                className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-gray-600 dark:text-gray-400 text-xs">
-                {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
-              </span>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{config.label}</h4>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <input type="checkbox" checked={allSelected} onChange={(e) => handleSelectAllResource(resource, allActions, e.target.checked)}
+                className="rounded border-gray-300 dark:border-gray-600 text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
+              <span className="text-gray-500">{allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}</span>
             </label>
           </div>
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             {Object.entries(config.actions).map(([action, label]) => (
-              <label key={action} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={formData.permissions[resource]?.includes(action) || false}
+              <label key={action} className="flex items-center gap-1.5 text-xs cursor-pointer py-0.5">
+                <input type="checkbox" checked={formData.permissions[resource]?.includes(action) || false}
                   onChange={(e) => handlePermissionChange(resource, action, e.target.checked)}
-                  className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
-                />
+                  className="rounded border-gray-300 dark:border-gray-600 text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
                 <span className="text-gray-700 dark:text-gray-300">{label}</span>
               </label>
             ))}
@@ -375,103 +180,81 @@ export function PermissionsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('permissions.title')}</h1>
-        <Button onClick={() => handleOpenModal()}>
-          <Plus className="w-4 h-4 mr-2" />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('permissions.title')}</h1>
+        <Button onClick={() => handleOpenModal()} size="sm">
+          <Plus className="w-4 h-4" />
           {t('permissions.create')}
         </Button>
       </div>
 
-      <div className="mb-6">
-        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setActiveTab('roles')}
-            className={`flex items-center gap-2 px-4 py-2 -mb-px border-b-2 transition-colors ${
-              activeTab === 'roles'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
-          >
-            <Shield className="w-4 h-4" />
+      <div className="mb-4">
+        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-900 rounded-lg w-fit border border-[var(--color-border)] dark:border-gray-800">
+          <button onClick={() => setActiveTab('roles')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              activeTab === 'roles' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}>
+            <Shield className="w-3.5 h-3.5" />
             {t('permissions.roles')}
           </button>
-          <button
-            onClick={() => setActiveTab('permissions')}
-            className={`flex items-center gap-2 px-4 py-2 -mb-px border-b-2 transition-colors ${
-              activeTab === 'permissions'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
+          <button onClick={() => setActiveTab('permissions')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              activeTab === 'permissions' ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}>
+            <ShieldCheck className="w-3.5 h-3.5" />
             {t('permissions.globalPermissions')}
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
-          {error}
-        </div>
+        <div className="mb-4 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">{error}</div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="divide-y divide-[var(--color-border)] dark:divide-gray-800">
+          <div className="flex gap-4 px-5 py-4 border-b border-[var(--color-border)] dark:border-gray-800">
+            <Skeleton variant="text" className="flex-1" height={14} />
+            <Skeleton variant="text" className="flex-1" height={14} />
+            <Skeleton variant="text" width={80} height={14} />
+          </div>
+          <SkeletonTable rows={4} cols={3} />
         </div>
       ) : data.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          {emptyMessage}
-        </div>
+        <EmptyState icon={activeTab === 'roles' ? <Shield className="w-8 h-8" /> : <ShieldCheck className="w-8 h-8" />} title={emptyMessage} />
       ) : (
         <>
           <div className="hidden lg:block">
             <Table data={data} columns={columns} keyExtractor={(item) => item.id} emptyMessage={emptyMessage} />
           </div>
-
-          <div className="lg:hidden space-y-4">
+          <div className="lg:hidden space-y-3">
             {data.map((item) => {
               const perms = item.permissions || {};
               const permCount = Object.values(perms).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
               const isRole = activeTab === 'roles';
-              
               return (
-                <Card key={item.id}>
+                <Card key={item.id} className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {permCount > 0 ? `${permCount} ${t('permissions.assigned')}` : t('permissions.none')}
-                      </p>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
+                      <p className="text-xs text-gray-500">{permCount > 0 ? `${permCount} ${t('permissions.assigned')}` : t('permissions.none')}</p>
                     </div>
-                    {isRole ? (
-                      <Shield className="w-5 h-5 text-blue-500" />
-                    ) : (
-                      <ShieldCheck className="w-5 h-5 text-green-500" />
-                    )}
+                    {isRole ? <Shield className="w-4 h-4 text-[var(--color-accent)]" /> : <ShieldCheck className="w-4 h-4 text-[var(--color-accent)]" />}
                   </div>
-
                   {permCount > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {Object.entries(perms).flatMap(([resource, actions]) => 
+                      {Object.entries(perms).flatMap(([resource, actions]) =>
                         (actions as string[]).map(action => (
-                          <span key={`${resource}-${action}`} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-xs rounded text-gray-600 dark:text-gray-300">
+                          <span key={`${resource}-${action}`} className="px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 text-[10px] rounded text-gray-600 dark:text-gray-400 border border-[var(--color-border)] dark:border-gray-700">
                             {resource}:{action}
                           </span>
                         ))
                       )}
                     </div>
                   )}
-
-                  <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <Button variant="secondary" size="sm" onClick={() => handleOpenModal(item)} className="flex-1">
-                      <Pencil className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                  <div className="flex gap-2 pt-3 border-t border-[var(--color-border)] dark:border-gray-800">
+                    <Button variant="secondary" size="sm" onClick={() => handleOpenModal(item)} className="flex-1"><Pencil className="w-3.5 h-3.5" />Editar</Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)} className="text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button>
                   </div>
                 </Card>
               );
@@ -480,39 +263,21 @@ export function PermissionsPage() {
         </>
       )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}
         title={editingItem ? t('permissions.edit') : t('permissions.create')}
         footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)} disabled={isLoadingItem}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleSubmit} disabled={isLoadingItem}>{t('common.save')}</Button>
-          </>
+          <><Button variant="secondary" onClick={() => setIsModalOpen(false)} disabled={isLoadingItem}>{t('common.cancel')}</Button><Button onClick={handleSubmit} disabled={isLoadingItem}>{t('common.save')}</Button></>
         }
+        size="lg"
       >
         {isLoadingItem ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-          </div>
+          <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-[var(--color-accent)]" /></div>
         ) : (
           <div className="space-y-4">
-            <Input
-              label={t('permissions.name')}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-            
+            <Input label={t('permissions.name')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('permissions.permissions')}
-              </label>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {renderPermissionSection()}
-              </div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('permissions.permissions')}</label>
+              <div className="space-y-3 max-h-96 overflow-y-auto">{renderPermissionSection()}</div>
             </div>
           </div>
         )}
@@ -520,3 +285,5 @@ export function PermissionsPage() {
     </div>
   );
 }
+
+export default PermissionsPage;

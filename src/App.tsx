@@ -1,25 +1,28 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './utils/routes';
+import { PageLoader } from './components/common/PageLoader';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
-import { StoreSelectPage } from './pages/auth/StoreSelectPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { ConfirmEmailPage } from './pages/auth/ConfirmEmailPage';
-import { BranchDetailPage } from './pages/home/BranchDetailPage';
-import { CategoryItemsPage } from './pages/home/CategoryItemsPage';
-import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { StorePage } from './pages/dashboard/StorePage';
-import { BranchesPage } from './pages/dashboard/BranchesPage';
-import { UsersPage } from './pages/dashboard/UsersPage';
-import { UserDetailPage } from './pages/dashboard/UserDetailPage';
-import { CategoriesPage } from './pages/dashboard/CategoriesPage';
-import { InventoryPage } from './pages/dashboard/InventoryPage';
-import { PermissionsPage } from './pages/dashboard/PermissionsPage';
+import { StoreSelectPage } from './pages/auth/StoreSelectPage';
 import './i18n';
+
+const BranchDetailPage = lazy(() => import('./pages/home/BranchDetailPage'));
+const CategoryItemsPage = lazy(() => import('./pages/home/CategoryItemsPage'));
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
+const StorePage = lazy(() => import('./pages/dashboard/StorePage'));
+const BranchesPage = lazy(() => import('./pages/dashboard/BranchesPage'));
+const UsersPage = lazy(() => import('./pages/dashboard/UsersPage'));
+const UserDetailPage = lazy(() => import('./pages/dashboard/UserDetailPage'));
+const CategoriesPage = lazy(() => import('./pages/dashboard/CategoriesPage'));
+const InventoryPage = lazy(() => import('./pages/dashboard/InventoryPage'));
+const PermissionsPage = lazy(() => import('./pages/dashboard/PermissionsPage'));
 
 function App() {
   return (
@@ -35,16 +38,16 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/store-select" element={<StoreSelectPage />} />
               <Route element={<Layout />}>
-                <Route path="/branches/:id" element={<BranchDetailPage />} />
-                <Route path="/categories/:id/items" element={<CategoryItemsPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/store" element={<StorePage />} />
-                <Route path="/branches" element={<BranchesPage />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/users/:id" element={<UserDetailPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/inventory" element={<InventoryPage />} />
-                <Route path="/permissions" element={<PermissionsPage />} />
+                <Route path="/branches/:id" element={<Suspense fallback={<PageLoader />}><BranchDetailPage /></Suspense>} />
+                <Route path="/categories/:id/items" element={<Suspense fallback={<PageLoader />}><CategoryItemsPage /></Suspense>} />
+                <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><DashboardPage /></Suspense>} />
+                <Route path="/store" element={<Suspense fallback={<PageLoader />}><StorePage /></Suspense>} />
+                <Route path="/branches" element={<Suspense fallback={<PageLoader />}><BranchesPage /></Suspense>} />
+                <Route path="/users" element={<Suspense fallback={<PageLoader />}><UsersPage /></Suspense>} />
+                <Route path="/users/:id" element={<Suspense fallback={<PageLoader />}><UserDetailPage /></Suspense>} />
+                <Route path="/categories" element={<Suspense fallback={<PageLoader />}><CategoriesPage /></Suspense>} />
+                <Route path="/inventory" element={<Suspense fallback={<PageLoader />}><InventoryPage /></Suspense>} />
+                <Route path="/permissions" element={<Suspense fallback={<PageLoader />}><PermissionsPage /></Suspense>} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/inventory" replace />} />

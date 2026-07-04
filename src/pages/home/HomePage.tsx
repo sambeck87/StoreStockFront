@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
-import { Card } from '../../components/common';
+import { Card, EmptyState } from '../../components/common';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Branch } from '../../types';
 import { Building2 } from 'lucide-react';
@@ -44,9 +44,7 @@ export function HomePage() {
         {t('home.title')}
       </h1>
       {branches.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          {t('home.noBranches')}
-        </div>
+        <EmptyState icon={<Building2 className="w-8 h-8" />} title={t('home.noBranches')} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {branches.map((branch) => (
@@ -77,3 +75,5 @@ export function HomePage() {
     </div>
   );
 }
+
+export default HomePage;

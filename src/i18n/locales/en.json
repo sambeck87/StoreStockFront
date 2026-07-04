@@ -17,7 +17,8 @@
     "registerError": "Registration failed",
     "registerSuccess": "User registered successfully. Please check your email to verify your account",
     "noAccount": "Don't have an account?",
-    "alreadyHaveAccount": "Already have an account?"
+    "alreadyHaveAccount": "Already have an account?",
+    "forgotPassword": "Forgot your password?"
   },
   "nav": {
     "menu": "Menu",
@@ -156,9 +157,9 @@
     "qtyEmpty": "Out of stock",
     "noItems": "No items",
     "filters": "Filters",
-    "exportCsv": "Download CSV",
+    "exportCsv": "Export CSV",
     "exporting": "Exporting...",
-    "exportFailed": "Export failed"
+    "exportFailed": "Error"
   },
   "branches": {
     "title": "Branches",

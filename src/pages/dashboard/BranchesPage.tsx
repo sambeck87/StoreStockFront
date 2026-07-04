@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Table, Modal, Input } from '../../components/common';
+import { Button, Card, Table, Modal, Input, Skeleton, SkeletonTable } from '../../components/common';
 import { api } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Branch } from '../../types';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
+import { toast } from 'react-toastify';
 
 export function BranchesPage() {
   const { t } = useTranslation();
@@ -36,10 +37,7 @@ export function BranchesPage() {
     setErrors({});
     if (branch) {
       setEditingBranch(branch);
-      setFormData({
-        name: branch.name,
-        phone: branch.phone || '',
-      });
+      setFormData({ name: branch.name, phone: branch.phone || '' });
     } else {
       setEditingBranch(null);
       setFormData({ name: '', phone: '' });
@@ -51,34 +49,25 @@ export function BranchesPage() {
     const validationErrors = validateForm(formData, [
       { field: 'name', rules: { required: validationMessages.nameRequired } },
     ]);
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
     try {
       if (editingBranch) {
-        await api.updateBranch(editingBranch.id, {
-          name: formData.name,
-          phone: formData.phone || undefined,
-        });
+        await api.updateBranch(editingBranch.id, { name: formData.name, phone: formData.phone || undefined });
       } else {
         if (!user?.store_id) {
-          alert('No tienes una tienda asignada');
+          toast.error('No tienes una tienda asignada');
           return;
         }
-        await api.createBranch({
-          name: formData.name,
-          phone: formData.phone || undefined,
-          store_id: user.store_id,
-        });
+        await api.createBranch({ name: formData.name, phone: formData.phone || undefined, store_id: user.store_id });
       }
       setIsModalOpen(false);
       fetchBranches();
     } catch (error) {
       const message = api.getErrorMessage(error);
-      alert(message);
+      toast.error(message);
       console.error('Error saving branch:', error);
     }
   };
@@ -90,7 +79,7 @@ export function BranchesPage() {
         fetchBranches();
       } catch (error) {
         const message = api.getErrorMessage(error);
-        alert(message);
+        toast.error(message);
         console.error('Error deleting branch:', error);
       }
     }
@@ -101,14 +90,14 @@ export function BranchesPage() {
     { key: 'phone', header: t('branches.phone') },
     {
       key: 'actions',
-      header: t('common.actions'),
+      header: '',
       render: (branch: Branch) => (
-        <div className="flex gap-2">
+        <div className="flex gap-1 justify-end">
           <Button variant="ghost" size="sm" onClick={() => handleOpenModal(branch)}>
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleDelete(branch.id)}>
-            <Trash2 className="w-4 h-4 text-red-500" />
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(branch.id)} className="text-red-500 hover:text-red-600">
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       ),
@@ -117,17 +106,22 @@ export function BranchesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('branches.title')}</h1>
-        <Button onClick={() => handleOpenModal()}>
-          <Plus className="w-4 h-4 mr-2" />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('branches.title')}</h1>
+        <Button onClick={() => handleOpenModal()} size="sm">
+          <Plus className="w-4 h-4" />
           {t('branches.create')}
         </Button>
       </div>
       <Card>
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="divide-y divide-[var(--color-border)] dark:divide-gray-800">
+            <div className="flex gap-4 px-5 py-4 border-b border-[var(--color-border)] dark:border-gray-800">
+              <Skeleton variant="text" className="flex-1" height={14} />
+              <Skeleton variant="text" className="flex-1" height={14} />
+              <Skeleton variant="text" width={80} height={14} />
+            </div>
+            <SkeletonTable rows={4} cols={2} />
           </div>
         ) : (
           <Table data={branches} columns={columns} keyExtractor={(b) => b.id} emptyMessage={t('branches.noBranches')} />
@@ -140,28 +134,18 @@ export function BranchesPage() {
         title={editingBranch ? t('branches.edit') : t('branches.create')}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSubmit}>{t('common.save')}</Button>
           </>
         }
       >
         <div className="space-y-4">
-          <Input
-            label={t('branches.name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            error={errors.name}
-            required
-          />
-          <Input
-            label={t('branches.phone')}
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
+          <Input label={t('branches.name')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={errors.name} required />
+          <Input label={t('branches.phone')} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
         </div>
       </Modal>
     </div>
   );
 }
+
+export default BranchesPage;

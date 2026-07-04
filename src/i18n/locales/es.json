@@ -17,7 +17,8 @@
     "registerError": "Error al registrarse",
     "registerSuccess": "Usuario registrado exitosamente. Por favor revisa tu correo para verificar tu cuenta",
     "noAccount": "¿No tienes cuenta?",
-    "alreadyHaveAccount": "¿Ya tienes cuenta?"
+    "alreadyHaveAccount": "¿Ya tienes cuenta?",
+    "forgotPassword": "¿Olvidaste tu contraseña?"
   },
   "nav": {
     "menu": "Menú",
@@ -157,9 +158,9 @@
     "qtyEmpty": "Sin existencia",
     "noItems": "No hay artículos",
     "filters": "Filtros",
-    "exportCsv": "Descargar CSV",
+    "exportCsv": "Exportar CSV",
     "exporting": "Exportando...",
-    "exportFailed": "Error al exportar"
+    "exportFailed": "Error"
   },
   "common": {
     "save": "Guardar",

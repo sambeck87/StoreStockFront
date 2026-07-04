@@ -5,6 +5,7 @@ import { api } from '../../api';
 import type { Store } from '../../types';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
+import { toast } from 'react-toastify';
 
 export function StoresPage() {
   const { t } = useTranslation();
@@ -62,7 +63,7 @@ export function StoresPage() {
       fetchStores();
     } catch (error) {
       const message = api.getErrorMessage(error);
-      alert(message);
+      toast.error(message);
       console.error('Error saving store:', error);
     }
   };
@@ -74,7 +75,7 @@ export function StoresPage() {
         fetchStores();
       } catch (error) {
         const message = api.getErrorMessage(error);
-        alert(message);
+        toast.error(message);
         console.error('Error deleting store:', error);
       }
     }
@@ -144,3 +145,5 @@ export function StoresPage() {
     </div>
   );
 }
+
+export default StoresPage;

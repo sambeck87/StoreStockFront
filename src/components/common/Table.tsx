@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { EmptyState } from './EmptyState';
 
 interface Column<T> {
   key: string;
@@ -17,44 +18,37 @@ interface TableProps<T> {
 
 export function Table<T>({ data, columns, keyExtractor, emptyMessage = 'No data', rowClassName, onRowClick }: TableProps<T>) {
   if (data.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-          <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-          </svg>
-        </div>
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
-      </div>
-    );
+    return <EmptyState title={emptyMessage} />;
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+    <div className="overflow-x-auto rounded-xl border border-[var(--color-border)] dark:border-gray-800">
       <table className="w-full">
         <thead>
-          <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+          <tr className="bg-gray-50 dark:bg-gray-900 border-b border-[var(--color-border)] dark:border-gray-800">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800/30">
+        <tbody className="divide-y divide-[var(--color-border)] dark:divide-gray-800">
           {data.map((item) => (
             <tr
               key={keyExtractor(item)}
               onClick={() => onRowClick && onRowClick(item)}
-              className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(item) : ''} ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`bg-white dark:bg-gray-900/50 transition-colors duration-100 ${
+                rowClassName ? rowClassName(item) : ''
+              } ${onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'hover:bg-gray-50/50 dark:hover:bg-gray-800/30'}`}
             >
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300"
+                  className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-300"
                 >
                   {col.render
                     ? col.render(item)

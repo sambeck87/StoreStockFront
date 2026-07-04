@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Table, Modal, Input } from '../../components/common';
+import { Button, Card, Table, Modal, Input, Skeleton, SkeletonTable } from '../../components/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../api';
 import type { Category } from '../../types';
 import { Plus, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
+import { toast } from 'react-toastify';
 
 export function CategoriesPage() {
   const { t } = useTranslation();
@@ -38,9 +39,7 @@ export function CategoriesPage() {
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
   const handleOpenModal = (category?: Category) => {
     setErrors({});
@@ -58,12 +57,10 @@ export function CategoriesPage() {
     const validationErrors = validateForm(formData, [
       { field: 'name', rules: { required: validationMessages.nameRequired } },
     ]);
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
     try {
       if (editingCategory) {
         await api.updateCategory(editingCategory.id, formData);
@@ -74,7 +71,7 @@ export function CategoriesPage() {
       fetchCategories();
     } catch (err) {
       const message = api.getErrorMessage(err);
-      alert(message);
+      toast.error(message);
       console.error('Error saving category:', err);
     }
   };
@@ -86,37 +83,37 @@ export function CategoriesPage() {
         fetchCategories();
       } catch (err) {
         const message = api.getErrorMessage(err);
-        alert(message);
+        toast.error(message);
         console.error('Error deleting category:', err);
       }
     }
   };
 
-  const handleViewItems = (categoryId: number) => {
-    navigate(`/categories/${categoryId}/items`);
-  };
-
   const columns = [
     { key: 'name', header: t('categories.name') },
-    { 
-      key: 'active', 
+    {
+      key: 'active',
       header: t('categories.status'),
       render: (cat: Category) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${cat.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+          cat.active
+            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+            : 'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+        }`}>
           {cat.active ? t('categories.active') : t('categories.inactive')}
         </span>
-      )
+      ),
     },
     {
       key: 'actions',
-      header: t('common.actions'),
+      header: '',
       render: (category: Category) => (
-        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="sm" onClick={() => handleOpenModal(category)}>
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleDelete(category.id)}>
-            <Trash2 className="w-4 h-4 text-red-500" />
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(category.id)} className="text-red-500 hover:text-red-600">
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       ),
@@ -126,39 +123,41 @@ export function CategoriesPage() {
   if (noPermission) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
-          <ShieldAlert className="w-10 h-10 text-gray-400" />
+        <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+          <ShieldAlert className="w-7 h-7 text-gray-400" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 text-center max-w-md">
-          {t('categories.noPermission')}
-        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">{t('categories.noPermission')}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('categories.title')}</h1>
-        <Button onClick={() => handleOpenModal()}>
-          <Plus className="w-4 h-4 mr-2" />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('categories.title')}</h1>
+        <Button onClick={() => handleOpenModal()} size="sm">
+          <Plus className="w-4 h-4" />
           {t('categories.create')}
         </Button>
       </div>
-      
+
       {error && (
-        <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+        <div className="mb-4 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
 
       <Card>
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="divide-y divide-[var(--color-border)] dark:divide-gray-800">
+            <div className="flex gap-4 px-5 py-4 border-b border-[var(--color-border)] dark:border-gray-800">
+              <Skeleton variant="text" className="flex-1" height={14} />
+              <Skeleton variant="text" width={80} height={14} />
+            </div>
+            <SkeletonTable rows={4} cols={2} />
           </div>
         ) : (
-          <Table data={categories} columns={columns} keyExtractor={(c) => c.id} emptyMessage={t('categories.noCategories')} onRowClick={(c) => handleViewItems(c.id)} />
+          <Table data={categories} columns={columns} keyExtractor={(c) => c.id} emptyMessage={t('categories.noCategories')} onRowClick={(c) => navigate(`/categories/${c.id}/items`)} />
         )}
       </Card>
 
@@ -168,28 +167,15 @@ export function CategoriesPage() {
         title={editingCategory ? t('categories.edit') : t('categories.create')}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSubmit}>{t('common.save')}</Button>
           </>
         }
       >
         <div className="space-y-4">
-          <Input
-            label={t('categories.name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            error={errors.name}
-            required
-          />
+          <Input label={t('categories.name')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={errors.name} required />
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
-            />
+            <input type="checkbox" checked={formData.active} onChange={(e) => setFormData({ ...formData, active: e.target.checked })} className="rounded border-gray-300 dark:border-gray-600 text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
             <span className="text-sm text-gray-700 dark:text-gray-300">{t('categories.active')}</span>
           </label>
         </div>
@@ -197,3 +183,5 @@ export function CategoriesPage() {
     </div>
   );
 }
+
+export default CategoriesPage;

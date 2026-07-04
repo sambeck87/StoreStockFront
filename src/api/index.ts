@@ -42,6 +42,7 @@ class ApiService {
   getErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error) && error.response?.data) {
       const data = error.response.data as ApiError;
+      if (typeof data.error === 'string') return data.error;
       return data.error?.message || 'Error de conexión';
     }
     return 'Error de conexión';
@@ -167,6 +168,14 @@ class ApiService {
   }
 
   async getInventory(params?: { branch_id?: number; category_id?: number; active?: string; quantity_status?: string }): Promise<Item[]> {
+    if (params?.active === 'all') {
+      const [active, inactive] = await Promise.all([
+        this.getInventory({ ...params, active: 'true' }),
+        this.getInventory({ ...params, active: 'false' }),
+      ]);
+      return [...active, ...inactive];
+    }
+
     const queryParams = new URLSearchParams();
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));

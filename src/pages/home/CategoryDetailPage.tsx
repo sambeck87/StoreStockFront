@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
-import { Card, Button, Modal, Input, Table } from '../../components/common';
+import { Card, Button, Modal, Input, Table, Skeleton, SkeletonTable, EmptyState } from '../../components/common';
 import type { Item, Branch, Category } from '../../types';
 import { ArrowLeft, Package, Filter, Trash2, Power, Save, Pencil, Plus, Minus } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const NumberControl = ({ label, value, onChange, prefix, decimals = false }: any) => {
   const handleDecrement = () => {
@@ -213,14 +214,14 @@ export function CategoryDetailPage() {
       });
     } catch(err) {
       const message = api.getErrorMessage(err);
-      alert(message);
+      toast.error(message);
       console.error('Error saving item inline:', err);
     }
   };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      alert('El nombre es requerido');
+      toast.error('El nombre es requerido');
       return;
     }
 
@@ -261,7 +262,7 @@ export function CategoryDetailPage() {
       setIsModalOpen(false);
     } catch (err) {
       const message = api.getErrorMessage(err);
-      alert(message);
+      toast.error(message);
       console.error('Error saving item:', err);
     }
   };
@@ -281,7 +282,7 @@ export function CategoryDetailPage() {
         setItems(data);
       } catch (err) {
         const message = api.getErrorMessage(err);
-        alert(message);
+        toast.error(message);
         console.error('Error deleting item:', err);
       }
     }
@@ -298,7 +299,7 @@ export function CategoryDetailPage() {
       );
     } catch (err) {
       const message = api.getErrorMessage(err);
-      alert(message);
+      toast.error(message);
       console.error('Error toggling status:', err);
     }
   };
@@ -526,17 +527,22 @@ export function CategoryDetailPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-        </div>
+        <Card className="overflow-hidden" noPadding>
+          <div className="divide-y divide-[var(--color-border)] dark:divide-gray-800">
+            <div className="flex gap-4 px-5 py-4 border-b border-[var(--color-border)] dark:border-gray-800">
+              <Skeleton variant="text" className="flex-1" height={14} />
+              <Skeleton variant="text" className="flex-1" height={14} />
+              <Skeleton variant="text" width={80} height={14} />
+            </div>
+            <SkeletonTable rows={4} cols={3} />
+          </div>
+        </Card>
       ) : items.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          {t('items.noItems')}
-        </div>
+        <EmptyState icon={<Package className="w-8 h-8" />} title={t('items.noItems')} />
       ) : (
         <>
           <div className="hidden lg:block">
-            <Card className="p-0 overflow-hidden">
+            <Card className="overflow-hidden" noPadding>
               <Table 
                 data={items} 
                 columns={columns} 
@@ -681,3 +687,5 @@ export function CategoryDetailPage() {
     </div>
   );
 }
+
+export default CategoryDetailPage;
