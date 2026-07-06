@@ -27,7 +27,7 @@
     "store": "Store",
     "branches": "Branches",
     "users": "Users",
-    "categories": "Categories",
+    "categories": "Categories & Items",
     "inventory": "Inventory",
     "permissions": "Permissions",
     "settings": "Settings"
@@ -205,6 +205,10 @@
     "confirmDeletePermission": "Are you sure you want to delete this permission?",
     "noRoles": "No roles",
     "noPermissions": "No global permissions"
+  },
+  "pagination": {
+    "showing": "Showing {{from}}-{{to}} of {{total}}",
+    "perPage": "Per page"
   },
   "theme": {
     "light": "Light",

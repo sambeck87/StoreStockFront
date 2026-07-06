@@ -27,7 +27,7 @@
     "store": "Tienda",
     "branches": "Sucursales",
     "users": "Usuarios",
-    "categories": "Categorías",
+    "categories": "Categorías y Artículos",
     "inventory": "Inventario",
     "permissions": "Permisos",
     "settings": "Configuración"
@@ -192,6 +192,10 @@
     "confirmDeletePermission": "¿Estás seguro de que quieres eliminar este permiso?",
     "noRoles": "No hay roles",
     "noPermissions": "No hay permisos globales"
+  },
+  "pagination": {
+    "showing": "Mostrando {{from}}-{{to}} de {{total}}",
+    "perPage": "Por página"
   },
   "theme": {
     "light": "Claro",

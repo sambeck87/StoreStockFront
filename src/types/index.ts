@@ -122,6 +122,13 @@ export interface RegisterData {
   full_name: string;
 }
 
+export interface PaginationMeta {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+}
+
 export interface InventoryExport {
   id: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Table, Modal, Input, Skeleton, SkeletonTable } from '../../components/common';
+import { Button, Card, Table, Modal, Input, Skeleton, SkeletonTable, Pagination } from '../../components/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../api';
-import type { Category } from '../../types';
+import type { Category, PaginationMeta } from '../../types';
 import { Plus, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 import { validateForm, validationMessages } from '../../utils/validation';
 import { toast } from 'react-toastify';
@@ -18,6 +18,8 @@ export function CategoriesPage() {
   const noPermission = !canAccessCategories;
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, per_page: 20, total: 0, total_pages: 1 });
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,11 +27,12 @@ export function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: '', active: true });
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (p = page) => {
     try {
       setError('');
-      const data = await api.getCategories();
-      setCategories(data);
+      const data = await api.getCategories(p);
+      setCategories(data.categories);
+      setMeta(data.meta);
     } catch (err) {
       const message = api.getErrorMessage(err);
       setError(message);
@@ -39,7 +42,13 @@ export function CategoriesPage() {
     }
   };
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => { fetchCategories(1); }, []);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    setIsLoading(true);
+    fetchCategories(newPage);
+  };
 
   const handleOpenModal = (category?: Category) => {
     setErrors({});
@@ -160,6 +169,8 @@ export function CategoriesPage() {
           <Table data={categories} columns={columns} keyExtractor={(c) => c.id} emptyMessage={t('categories.noCategories')} onRowClick={(c) => navigate(`/categories/${c.id}/items`)} />
         )}
       </Card>
+
+      <Pagination meta={meta} onPageChange={handlePageChange} />
 
       <Modal
         isOpen={isModalOpen}

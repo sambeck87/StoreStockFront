@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
-import { Card, Button, Modal, Input, Table, Skeleton, SkeletonTable, EmptyState } from '../../components/common';
-import type { Item, Branch, Category } from '../../types';
+import { Card, Button, Modal, Input, Table, Skeleton, SkeletonTable, EmptyState, Pagination } from '../../components/common';
+import type { Item, Branch, Category, PaginationMeta } from '../../types';
 import { ArrowLeft, Package, Filter, Trash2, Power, Save, Pencil, Plus, Minus } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -72,6 +72,9 @@ export function CategoryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [items, setItems] = useState<Item[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, per_page: 20, total: 0, total_pages: 1 });
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
   const [category, setCategory] = useState<Category | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,31 +118,32 @@ export function CategoryDetailPage() {
     fetchData();
   }, [id]);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      if (!id || !branchesLoaded) return;
-      setIsLoading(true);
-      try {
-        const params: { branch_id?: number; active?: boolean } = {};
+  const fetchItems = async (p = page) => {
+    if (!id || !branchesLoaded) return;
+    setIsLoading(true);
+    try {
+      const params: { branch_id?: number; active?: boolean; page?: number; per_page?: number } = { page: p, per_page: perPage };
 
-        if (filters.branch_id) {
-          params.branch_id = Number(filters.branch_id);
-        }
-
-        if (filters.active !== '') {
-          params.active = filters.active === 'true';
-        }
-
-        const data = await api.getCategoryItems(Number(id), params);
-        setItems(data);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      } finally {
-        setIsLoading(false);
+      if (filters.branch_id) {
+        params.branch_id = Number(filters.branch_id);
       }
-    };
-    fetchItems();
-  }, [id, filters, branchesLoaded]);
+
+      if (filters.active !== '') {
+        params.active = filters.active === 'true';
+      }
+
+      const data = await api.getCategoryItems(Number(id), params);
+      setItems(data.items);
+      setMeta(data.meta);
+      setPage(data.meta.page);
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchItems(1); }, [id, filters, perPage, branchesLoaded]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -253,11 +257,7 @@ export function CategoryDetailPage() {
 
         await api.createItem({ ...newItemData, category_id: Number(id) });
         
-        const params: { branch_id?: number; active?: boolean } = {};
-        if (filters.branch_id) params.branch_id = Number(filters.branch_id);
-        if (filters.active !== '') params.active = filters.active === 'true';
-        const data = await api.getCategoryItems(Number(id), params);
-        setItems(data);
+        await fetchItems(page);
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -275,11 +275,7 @@ export function CategoryDetailPage() {
           category_id: Number(id)
         });
 
-        const params: { branch_id?: number; active?: boolean } = {};
-        if (filters.branch_id) params.branch_id = Number(filters.branch_id);
-        if (filters.active !== '') params.active = filters.active === 'true';
-        const data = await api.getCategoryItems(Number(id), params);
-        setItems(data);
+        await fetchItems(page);
       } catch (err) {
         const message = api.getErrorMessage(err);
         toast.error(message);
@@ -486,7 +482,7 @@ export function CategoryDetailPage() {
           {category?.name || t('items.title')}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <Filter className="w-4 h-4" />
           </div>
@@ -494,7 +490,7 @@ export function CategoryDetailPage() {
           <select
             value={filters.branch_id}
             onChange={(e) => handleFilterChange('branch_id', e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="flex-1 min-w-[120px] px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           >
             {branches.map(branch => (
               <option key={branch.id} value={branch.id}>
@@ -506,12 +502,26 @@ export function CategoryDetailPage() {
           <select
             value={filters.active}
             onChange={(e) => handleFilterChange('active', e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="flex-1 min-w-[120px] px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           >
             <option value="true">{t('items.active')}</option>
             <option value="false">{t('items.inactive')}</option>
             <option value="">{t('items.allStatus')}</option>
           </select>
+
+          <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span>{t('pagination.perPage')}</span>
+            <select
+              value={perPage}
+              onChange={(e) => setPerPage(Number(e.target.value))}
+              className="w-16 px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </label>
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -548,20 +558,23 @@ export function CategoryDetailPage() {
                 columns={columns} 
                 keyExtractor={(i) => i.id} 
                 emptyMessage={t('items.noItems')}
-                rowClassName={(item) => 
-                  (item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity)
-                    ? 'bg-red-50/60 dark:bg-red-900/20'
-                    : ''
-                }
+                rowClassName={(item) => {
+                  const qty = item.current_quantity;
+                  const min = item.minimum_quantity;
+                  if (qty == null || qty <= 0) return '!bg-red-100 dark:!bg-red-900/50';
+                  if (min != null && qty < min) return '!bg-amber-100 dark:!bg-amber-900/50';
+                  return '';
+                }}
               />
             </Card>
+            <Pagination meta={meta} onPageChange={(p) => { setPage(p); fetchItems(p); }} />
           </div>
 
           <div className="lg:hidden space-y-4">
             {items.map((item) => {
               const isLowStock = item.current_quantity !== undefined && item.minimum_quantity !== undefined && item.current_quantity < item.minimum_quantity;
               return (
-                <Card key={item.id} className={`${isLowStock ? 'border-red-300 dark:border-red-700 bg-red-50/60 dark:bg-red-900/20' : ''}`}>
+                <Card key={item.id} className={`${isLowStock ? '!border-red-300 dark:!border-red-700 !bg-red-50/60 dark:!bg-red-900/20' : ''}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
@@ -617,6 +630,7 @@ export function CategoryDetailPage() {
                 </Card>
               );
             })}
+            <Pagination meta={meta} onPageChange={(p) => { setPage(p); fetchItems(p); }} />
           </div>
         </>
       )}

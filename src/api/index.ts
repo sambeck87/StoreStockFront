@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
-import type { AuthResponse, LoginCredentials, RegisterData, User, Store, Branch, Item, Role, GlobalPermission, Category, InventoryExport } from '../types';
+import type { AuthResponse, LoginCredentials, RegisterData, User, Store, Branch, Item, Role, GlobalPermission, Category, InventoryExport, PaginationMeta } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -43,9 +43,9 @@ class ApiService {
     if (axios.isAxiosError(error) && error.response?.data) {
       const data = error.response.data as ApiError;
       if (typeof data.error === 'string') return data.error;
-      return data.error?.message || 'Error de conexión';
+      return data.error?.message || 'Oops, algo salió mal, intente más tarde';
     }
-    return 'Error de conexión';
+    return 'Oops, algo salió mal, intente más tarde';
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -143,9 +143,9 @@ class ApiService {
     return data.users;
   }
 
-  async getCategories(): Promise<Category[]> {
-    const { data } = await this.api.get<{ categories: Category[] }>('/categories');
-    return data.categories;
+  async getCategories(page = 1, perPage = 20): Promise<{ categories: Category[]; meta: PaginationMeta }> {
+    const { data } = await this.api.get<{ categories: Category[]; meta: PaginationMeta }>(`/categories?page=${page}&per_page=${perPage}`);
+    return data;
   }
 
   async getCategory(id: number): Promise<Category> {
@@ -167,59 +167,59 @@ class ApiService {
     await this.api.delete(`/categories/${id}`);
   }
 
-  async getInventory(params?: { branch_id?: number; category_id?: number; active?: string; quantity_status?: string }): Promise<Item[]> {
-    if (params?.active === 'all') {
-      const [active, inactive] = await Promise.all([
-        this.getInventory({ ...params, active: 'true' }),
-        this.getInventory({ ...params, active: 'false' }),
-      ]);
-      return [...active, ...inactive];
-    }
-
+  async getInventory(params?: { branch_id?: number; category_id?: number; active?: string; quantity_status?: string; page?: number; per_page?: number }): Promise<{ items: Item[]; meta: PaginationMeta }> {
     const queryParams = new URLSearchParams();
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));
     if (params?.active) queryParams.append('active', params.active);
     if (params?.quantity_status) queryParams.append('quantity_status', params.quantity_status);
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.per_page) queryParams.append('per_page', String(params.per_page));
 
     const url = queryParams.toString() ? `/inventory?${queryParams}` : '/inventory';
-    const { data } = await this.api.get<{ items: Item[] }>(url);
-    return data.items;
+    const { data } = await this.api.get<{ items: Item[]; meta: PaginationMeta }>(url);
+    return data;
   }
 
-  async getItems(params?: { category_id?: number; branch_id?: number; active?: boolean }): Promise<Item[]> {
+  async getItems(params?: { category_id?: number; branch_id?: number; active?: boolean; page?: number; per_page?: number }): Promise<{ items: Item[]; meta: PaginationMeta }> {
     const queryParams = new URLSearchParams();
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.active !== undefined) queryParams.append('active', String(params.active));
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.per_page) queryParams.append('per_page', String(params.per_page));
 
     const url = queryParams.toString() ? `/items?${queryParams}` : '/items';
-    const { data } = await this.api.get<{ items: Item[] }>(url);
-    return data.items;
+    const { data } = await this.api.get<{ items: Item[]; meta: PaginationMeta }>(url);
+    return data;
   }
 
-  async getCategoryItems(categoryId: number, params?: { branch_id?: number; active?: boolean }): Promise<Item[]> {
+  async getCategoryItems(categoryId: number, params?: { branch_id?: number; active?: boolean; page?: number; per_page?: number }): Promise<{ items: Item[]; meta: PaginationMeta }> {
     const queryParams = new URLSearchParams();
     if (params?.branch_id) queryParams.append('branch_id', String(params.branch_id));
     if (params?.active !== undefined) queryParams.append('active', String(params.active));
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.per_page) queryParams.append('per_page', String(params.per_page));
 
     const url = queryParams.toString()
       ? `/categories/${categoryId}/items?${queryParams}`
       : `/categories/${categoryId}/items`;
-    const { data } = await this.api.get<{ items: Item[] }>(url);
-    return data.items;
+    const { data } = await this.api.get<{ items: Item[]; meta: PaginationMeta }>(url);
+    return data;
   }
 
-  async getBranchItems(branchId: number, params?: { category_id?: number; active?: boolean }): Promise<Item[]> {
+  async getBranchItems(branchId: number, params?: { category_id?: number; active?: boolean; page?: number; per_page?: number }): Promise<{ items: Item[]; meta: PaginationMeta }> {
     const queryParams = new URLSearchParams();
     if (params?.category_id) queryParams.append('category_id', String(params.category_id));
     if (params?.active !== undefined) queryParams.append('active', String(params.active));
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.per_page) queryParams.append('per_page', String(params.per_page));
 
     const url = queryParams.toString()
       ? `/branches/${branchId}/items?${queryParams}`
       : `/branches/${branchId}/items`;
-    const { data } = await this.api.get<{ items: Item[] }>(url);
-    return data.items;
+    const { data } = await this.api.get<{ items: Item[]; meta: PaginationMeta }>(url);
+    return data;
   }
 
   async createItem(itemData: Partial<Item> & { category_id?: number }): Promise<Item> {

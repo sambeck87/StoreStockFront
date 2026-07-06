@@ -92,13 +92,10 @@ export function Layout() {
         }`}
       >
         <div className="h-16 flex items-center px-4 border-b border-[var(--color-border)] dark:border-gray-800 shrink-0 overflow-hidden">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="flex items-center gap-2 shrink-0">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="flex items-center shrink-0">
             <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)] flex items-center justify-center shrink-0">
               <Store className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-              {storeName || t('app.name')}
-            </span>
           </button>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto scrollbar-thin w-60">
@@ -134,12 +131,12 @@ export function Layout() {
             className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-gray-900 shadow-2xl lg:hidden"
           >
             <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--color-border)] dark:border-gray-800">
-              <div className="flex items-center gap-3">
+              <button onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)] flex items-center justify-center">
                   <Store className="w-4 h-4 text-white" />
                 </div>
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">{storeName || t('app.name')}</span>
-              </div>
+              </button>
               <button onClick={() => setMobileSidebarOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -201,6 +198,9 @@ export function Layout() {
               >
                 <Menu className="w-5 h-5" />
               </button>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[200px]">
+                {storeName || t('app.name')}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <button

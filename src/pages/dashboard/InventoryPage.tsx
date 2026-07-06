@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Button, Card, Table, Skeleton, SkeletonTable, EmptyState } from '../../components/common';
+import { Button, Card, Table, Skeleton, SkeletonTable, EmptyState, Pagination } from '../../components/common';
 import { api } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
-import type { Item, Branch, Category, InventoryExport } from '../../types';
+import type { Item, Branch, Category, InventoryExport, PaginationMeta } from '../../types';
 import { Filter, RotateCcw, Package, Save, Power, Minus, Plus, Loader2, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -23,6 +23,9 @@ export function InventoryPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, per_page: 20, total: 0, total_pages: 1 });
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [drafts, setDrafts] = useState<Record<string, Partial<Item>>>({});
   const [savingRow, setSavingRow] = useState<string | null>(null);
@@ -33,29 +36,31 @@ export function InventoryPage() {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const [branchesData, categoriesData] = await Promise.all([api.getBranches(), api.getCategories()]);
+        const [branchesData, categoriesData] = await Promise.all([api.getBranches(), api.getCategories(1, 999)]);
         setBranches(branchesData);
-        setCategories(categoriesData);
+        setCategories(categoriesData.categories);
       } catch (err) { console.error('Error fetching filter data:', err); }
     };
     fetchFilters();
   }, []);
 
-  const fetchItems = async () => {
+  const fetchItems = async (p = page) => {
     setIsLoading(true);
     try {
-      const params: Record<string, string> = {};
+      const params: Record<string, string | number> = { page: p, per_page: perPage };
       if (branchId) params.branch_id = branchId;
       if (categoryId) params.category_id = categoryId;
       if (quantityStatus) params.quantity_status = quantityStatus;
       if (active) params.active = active;
       const data = await api.getInventory(params);
-      setItems(data);
+      setItems(data.items);
+      setMeta(data.meta);
+      setPage(data.meta.page);
     } catch (err) { console.error('Error fetching inventory:', err); }
     finally { setIsLoading(false); }
   };
 
-  useEffect(() => { fetchItems(); }, [branchId, categoryId, quantityStatus, active]);
+  useEffect(() => { fetchItems(1); }, [branchId, categoryId, quantityStatus, active, perPage]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -88,14 +93,20 @@ export function InventoryPage() {
 
   const refetchInventory = async () => {
     try {
-      const params: Record<string, string> = {};
+      const params: Record<string, string | number> = { page, per_page: perPage };
       if (branchId) params.branch_id = branchId;
       if (categoryId) params.category_id = categoryId;
       if (quantityStatus) params.quantity_status = quantityStatus;
       if (active) params.active = active;
       const data = await api.getInventory(params);
-      setItems(data);
+      setItems(data.items);
+      setMeta(data.meta);
     } catch (err) { console.error('Error refetching inventory:', err); }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchItems(newPage);
   };
 
   const saveRow = async (item: Item) => {
@@ -196,7 +207,7 @@ export function InventoryPage() {
             <Minus className="w-3 h-3" />
           </button>
           <input type="number" value={value} onChange={(e) => handleDraftChange(item, 'current_quantity', e.target.value)}
-            className="w-14 text-center py-0.5 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[var(--color-accent)] focus:outline-none text-[var(--color-accent)] dark:text-emerald-400 dark:hover:border-gray-600 dark:focus:border-[var(--color-accent)] transition-colors text-sm font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+            className="w-14 text-center py-0.5 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[var(--color-accent)] focus:outline-none text-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:focus:border-[var(--color-accent)] transition-colors text-sm font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
           <button type="button" onClick={() => { const c = Number(value) || 0; handleDraftChange(item, 'current_quantity', String(c + 1)); }}
             className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-400 opacity-0 group-hover:opacity-100 transition-all focus:outline-none">
             <Plus className="w-3 h-3" />
@@ -213,7 +224,7 @@ export function InventoryPage() {
             <Minus className="w-3 h-3" />
           </button>
           <input type="number" value={value} onChange={(e) => handleDraftChange(item, 'minimum_quantity', e.target.value)}
-            className="w-14 text-center py-0.5 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[var(--color-accent)] focus:outline-none text-gray-600 dark:text-gray-400 dark:hover:border-gray-600 dark:focus:border-[var(--color-accent)] transition-colors text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+            className="w-14 text-center py-0.5 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[var(--color-accent)] focus:outline-none text-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:focus:border-[var(--color-accent)] transition-colors text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
           <button type="button" onClick={() => { const c = Number(value) || 0; handleDraftChange(item, 'minimum_quantity', String(c + 1)); }}
             className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-400 opacity-0 group-hover:opacity-100 transition-all focus:outline-none">
             <Plus className="w-3 h-3" />
@@ -283,24 +294,34 @@ export function InventoryPage() {
               </Button>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <select value={branchId} onChange={(e) => updateFilter('branch_id', e.target.value)} className={selectClass}>
+          <div className="flex flex-wrap items-center gap-3">
+            <select value={branchId} onChange={(e) => updateFilter('branch_id', e.target.value)} className={`${selectClass} flex-1 min-w-[120px]`}>
               <option value="">{t('inventory.allBranches')}</option>
               {branches.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
             </select>
-            <select value={categoryId} onChange={(e) => updateFilter('category_id', e.target.value)} className={selectClass}>
+            <select value={categoryId} onChange={(e) => updateFilter('category_id', e.target.value)} className={`${selectClass} flex-1 min-w-[120px]`}>
               <option value="">{t('inventory.allCategories')}</option>
               {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
             </select>
-            <select value={quantityStatus} onChange={(e) => updateFilter('quantity_status', e.target.value)} className={selectClass}>
+            <select value={quantityStatus} onChange={(e) => updateFilter('quantity_status', e.target.value)} className={`${selectClass} flex-1 min-w-[120px]`}>
               <option value="">{t('inventory.allStatus')}</option>
               {QUANTITY_STATUS_OPTIONS.map((s) => (<option key={s} value={s}>{statusLabels[s]}</option>))}
             </select>
-            <select value={active} onChange={(e) => updateFilter('active', e.target.value)} className={selectClass}>
+            <select value={active} onChange={(e) => updateFilter('active', e.target.value)} className={`${selectClass} flex-1 min-w-[120px]`}>
               <option value="all">{t('inventory.allActive')}</option>
               <option value="true">{t('inventory.active')}</option>
               <option value="false">{t('inventory.inactive')}</option>
             </select>
+            <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              <span>{t('pagination.perPage')}</span>
+              <select value={perPage} onChange={(e) => setPerPage(Number(e.target.value))}
+                className="w-16 px-2 py-1.5 text-xs border border-[var(--color-border)] dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:border-[var(--color-accent)] outline-none">
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -363,7 +384,7 @@ export function InventoryPage() {
                               <button type="button" onClick={() => { const v = Number(getDraft(item, field) ?? 0); handleDraftChange(item, field, String(Math.max(0, v - 1))); }}
                                 className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-[var(--color-accent)]"><Minus className="w-3 h-3" /></button>
                               <input type="number" value={String(getDraft(item, field) ?? '')} onChange={(e) => handleDraftChange(item, field, e.target.value)}
-                                className="w-12 text-center py-0.5 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-[var(--color-accent)] focus:outline-none text-sm font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                className="w-12 text-center py-0.5 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-[var(--color-accent)] focus:outline-none text-gray-900 dark:text-gray-100 text-sm font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                               <button type="button" onClick={() => { const v = Number(getDraft(item, field) ?? 0); handleDraftChange(item, field, String(v + 1)); }}
                                 className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-[var(--color-accent)]"><Plus className="w-3 h-3" /></button>
                             </div>
@@ -402,6 +423,8 @@ export function InventoryPage() {
           </>
         )}
       </Card>
+
+      <Pagination meta={meta} onPageChange={handlePageChange} />
     </div>
   );
 }
