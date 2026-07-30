@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Test coverage
+coverage/
+
+# TypeScript build info
+*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,3 +30,8 @@ dist-ssr
 *.sw?
 
 /.env*
+
+# Agent/IDE config
+.claude/
+opencode.json
+skills-lock.json
