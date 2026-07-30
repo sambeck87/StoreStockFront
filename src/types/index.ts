@@ -37,19 +37,6 @@ export interface Branch {
   role?: Role;
 }
 
-export interface Branch {
-  id: number;
-  name: string;
-  phone?: string;
-  manager_name?: string;
-  manager_email?: string;
-  main_branch?: boolean;
-  address?: string;
-  store_id?: number;
-  is_main?: boolean;
-  role?: Role;
-}
-
 export interface Store {
   id: number;
   name: string;
@@ -57,18 +44,6 @@ export interface Store {
   manager_email?: string;
   address?: string;
   phone?: string;
-}
-
-export interface Branch {
-  id: number;
-  name: string;
-  phone?: string;
-  manager_name?: string;
-  manager_email?: string;
-  main_branch?: boolean;
-  address?: string;
-  store_id?: number;
-  is_main?: boolean;
 }
 
 export interface Item {

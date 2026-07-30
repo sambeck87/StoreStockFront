@@ -317,8 +317,7 @@ class ApiService {
   }
 
   async getUserBranches(): Promise<Branch[]> {
-    const { data } = await this.api.get<{ branches: Branch[] }>('/branches');
-    return data.branches;
+    return this.getBranches();
   }
 
   async getBranchCategories(branchId: number): Promise<Category[]> {

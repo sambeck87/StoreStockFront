@@ -41,26 +41,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const resources: Record<string, string[]> = {};
       
+      const branches = userData.branches || [];
+      const roleIds = branches
+        .map(b => b.role?.id)
+        .filter((id): id is number => id != null);
+
+      const permPromises: Promise<void>[] = [];
+
       const globalPermId = userData.global_permission?.id;
       if (globalPermId) {
-        try {
-          const globalPerm = await api.getGlobalPermission(globalPermId);
-          const globalPermsObj = globalPerm.permissions || {};
-          Object.entries(globalPermsObj).forEach(([key, actions]) => {
-            if (actions && actions.length > 0) {
-              resources[key] = actions;
-            }
-          });
-        } catch (e) {
-          console.warn('Could not load global permissions:', e);
-        }
+        permPromises.push(
+          api.getGlobalPermission(globalPermId).then(globalPerm => {
+            const globalPermsObj = globalPerm.permissions || {};
+            Object.entries(globalPermsObj).forEach(([key, actions]) => {
+              if (actions && actions.length > 0) {
+                resources[key] = actions;
+              }
+            });
+          }).catch(e => console.warn('Could not load global permissions:', e))
+        );
       }
-      
-      const branches = userData.branches || [];
-      for (const branch of branches) {
-        if (branch.role?.id) {
-          try {
-            const role = await api.getRole(branch.role.id);
+
+      for (const roleId of roleIds) {
+        permPromises.push(
+          api.getRole(roleId).then(role => {
             const rolePermsObj = role.permissions || {};
             Object.entries(rolePermsObj).forEach(([key, actions]) => {
               if (actions && actions.length > 0) {
@@ -71,13 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
               }
             });
-          } catch (e) {
-            console.warn('Could not load role permissions:', e);
-          }
-        }
+          }).catch(e => console.warn('Could not load role permissions:', e))
+        );
       }
+
+      await Promise.all(permPromises);
       
-      console.log('Loaded permission resources:', resources);
       return resources;
     } catch (error) {
       console.error('Error loading permissions:', error);

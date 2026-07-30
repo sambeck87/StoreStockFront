@@ -58,7 +58,10 @@ export function CategoryItemsPage() {
       try {
         const data = await api.getUserBranches();
         setBranches(data);
-        if (data.length > 0) setFilters(prev => ({ ...prev, branch_id: String(data[0].id) }));
+        if (data.length > 0) {
+          const main = data.find(b => b.is_main || b.main_branch) || data[0];
+          setFilters(prev => ({ ...prev, branch_id: String(main.id) }));
+        }
       } catch (error) { console.error('Error fetching branches:', error); }
       finally { setBranchesLoaded(true); }
     };
@@ -66,12 +69,15 @@ export function CategoryItemsPage() {
   }, []);
 
   const fetchItems = async (p = page) => {
-    if (!id || !branchesLoaded || !filters.branch_id) return;
+    if (!id || !branchesLoaded) return;
     setIsLoading(true);
     try {
-      const params: { category_id: number; active?: boolean; page?: number; per_page?: number } = { category_id: Number(id), page: p, per_page: perPage };
+      const params: { active?: boolean; page?: number; per_page?: number; branch_id?: number } = { page: p, per_page: perPage };
       if (filters.active !== '') params.active = filters.active === 'true';
-      const data = await api.getBranchItems(Number(filters.branch_id), params);
+      if (filters.branch_id) params.branch_id = Number(filters.branch_id);
+      const data = filters.branch_id
+        ? await api.getBranchItems(Number(filters.branch_id), { ...params, category_id: Number(id) })
+        : await api.getCategoryItems(Number(id), params);
       setItems(data.items);
       setMeta(data.meta);
       setPage(data.meta.page);
