@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Button, Input } from '../../components/common';
+import { Button, Input, PasswordRequirement } from '../../components/common';
 import { api } from '../../api';
 import { Lock, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,13 +15,19 @@ export function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const hasMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const passwordsMatch = password === passwordConfirmation && password.length > 0;
+  const allRequirementsMet = hasMinLength && hasUppercase && hasLowercase && hasNumber && passwordsMatch;
+
   useEffect(() => { if (!token) setError('Token de recuperación inválido'); }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (password !== passwordConfirmation) { setError('Las contraseñas no coinciden'); return; }
-    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return; }
+    if (!allRequirementsMet) return;
     setIsLoading(true);
     try {
       await api.updatePassword(token!, password, passwordConfirmation);
@@ -68,9 +74,26 @@ export function ResetPasswordPage() {
           {error && <div className="mb-4 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input label="Nueva Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <Input label="Confirmar Contraseña" type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} required />
-            <Button type="submit" className="w-full" disabled={isLoading || !token}>
+            <div>
+              <Input label="Nueva Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              {password && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-2 space-y-1">
+                  <PasswordRequirement met={hasMinLength} text="Mínimo 8 caracteres" />
+                  <PasswordRequirement met={hasUppercase} text="Una letra mayúscula" />
+                  <PasswordRequirement met={hasLowercase} text="Una letra minúscula" />
+                  <PasswordRequirement met={hasNumber} text="Un número" />
+                </motion.div>
+              )}
+            </div>
+            <div>
+              <Input label="Confirmar Contraseña" type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} required />
+              {passwordConfirmation && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-2">
+                  <PasswordRequirement met={passwordsMatch} text="Las contraseñas coinciden" />
+                </motion.div>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading || !token || !allRequirementsMet}>
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cambiar Contraseña'}
             </Button>
           </form>

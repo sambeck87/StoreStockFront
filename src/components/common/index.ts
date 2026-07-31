@@ -1,4 +1,5 @@
 export { Button } from './Button';
+export { PasswordRequirement } from './PasswordRequirement';
 export { Input } from './Input';
 export { Modal } from './Modal';
 export { Card } from './Card';
