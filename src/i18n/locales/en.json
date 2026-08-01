@@ -71,10 +71,6 @@
     "title": "My Branches",
     "noBranches": "You don't have access to any branch"
   },
-  "categories": {
-    "title": "Categories",
-    "noCategories": "No categories"
-  },
   "branches": {
     "title": "Branches",
     "create": "New Branch",
@@ -85,6 +81,7 @@
     "phone": "Phone",
     "store": "Store",
     "manager": "Manager",
+    "all": "All branches",
     "confirmDelete": "Are you sure you want to delete this branch?",
     "noBranches": "No branches"
   },
@@ -160,20 +157,6 @@
     "exportCsv": "Export CSV",
     "exporting": "Exporting...",
     "exportFailed": "Error"
-  },
-  "branches": {
-    "title": "Branches",
-    "create": "New Branch",
-    "edit": "Edit Branch",
-    "delete": "Delete Branch",
-    "name": "Name",
-    "address": "Address",
-    "phone": "Phone",
-    "store": "Store",
-    "manager": "Manager",
-    "all": "All branches",
-    "confirmDelete": "Are you sure you want to delete this branch?",
-    "noBranches": "No branches"
   },
   "common": {
     "save": "Save",

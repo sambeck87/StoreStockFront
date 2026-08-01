@@ -30,6 +30,7 @@ coverage/
 *.sw?
 
 /.env*
+!/.env.example
 
 # Agent/IDE config
 .claude/
