@@ -1,0 +1,9 @@
+version: 2
+
+ignore:
+  - matches:
+      - name: Generic Password
+        match: "Abcdef12"
+    files:
+      - src/pages/auth/RegisterPage.test.tsx
+      - src/pages/auth/PasswordPages.test.tsx

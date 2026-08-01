@@ -71,10 +71,6 @@
     "title": "Mis Sucursales",
     "noBranches": "No tienes acceso a ninguna sucursal"
   },
-  "categories": {
-    "title": "Categorías",
-    "noCategories": "No hay categorías"
-  },
   "branches": {
     "title": "Sucursales",
     "create": "Nueva Sucursal",
